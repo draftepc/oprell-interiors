@@ -3,3 +3,5 @@ _qa/
 *.png.tmp
 .DS_Store
 Thumbs.db
+OneDrive_*.zip
+OneDrive_*/

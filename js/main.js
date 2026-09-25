@@ -20,6 +20,7 @@ setTimeout(() => {
 /* ---------------- custom cursor ---------------- */
 const cur = $('#cursor');
 if (matchMedia('(hover:hover) and (pointer:fine)').matches && !REDUCED) {
+  document.body.classList.add('cur-on');
   const cx = gsap.quickTo(cur, 'x', { duration: 0.12, ease: 'power3' });
   const cy = gsap.quickTo(cur, 'y', { duration: 0.12, ease: 'power3' });
   const txt = $('.cur-txt');
@@ -77,7 +78,7 @@ const setCtx = i => {
   chipA.dataset.proj = c.p; chipB.dataset.proj = c.p;
   chipA.innerHTML = `<b>${c.b}</b><span>${c.s}</span>`;
   chipB.innerHTML = `<b>${c.y}</b><span>${c.t}</span>`;
-  gsap.fromTo([chipA, chipB], { opacity: 0, y: 10 },
+  if (!REDUCED) gsap.fromTo([chipA, chipB], { opacity: 0, y: 10 },
     { opacity: 1, y: 0, duration: .55, ease: 'power3.out', stagger: .08, delay: .15 });
 };
 [chipA, chipB].forEach(ch => ch.addEventListener('click', () => openProject(+ch.dataset.proj || 0)));
@@ -100,15 +101,20 @@ const commitWipe = () => {
   hImgs[hCur].classList.remove('on');
   hCur = peekIdx;
   hImgs[hCur].classList.add('on');
-  $$('#hero-dots i').forEach((d, i) => d.classList.toggle('on', i === hCur));
+  [...dotsBox.children].forEach((d, i) => {
+    d.classList.toggle('on', i === hCur);
+    d.toggleAttribute('aria-current', i === hCur);
+  });
   setCtx(hCur);
   clearPeek();
 };
 
 if (HN > 1) {
   hImgs.forEach((_, i) => {
-    const d = document.createElement('i');
-    if (!i) d.classList.add('on');
+    const d = document.createElement('button');
+    d.type = 'button';
+    d.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+    if (!i) { d.classList.add('on'); d.setAttribute('aria-current', 'true'); }
     dotsBox.appendChild(d);
   });
   const wipe = (target, from, dur = 1.2) => {
@@ -130,7 +136,7 @@ if (HN > 1) {
   const auto = () => { if (!REDUCED) hTimer = setInterval(next, 5500); };
   const stop = () => { clearInterval(hTimer); hTimer = null; };
   auto();
-  $$('#hero-dots i').forEach((d, i) => d.addEventListener('click', () => {
+  [...dotsBox.children].forEach((d, i) => d.addEventListener('click', () => {
     stop(); wipe(i, i > hCur ? 'right' : 'left', .9); auto();
   }));
   $('#hc-prev').addEventListener('click', e => { e.stopPropagation(); stop(); prev(); auto(); });
@@ -142,6 +148,7 @@ if (HN > 1) {
   let startX = null, dir = null;
   hCar.addEventListener('pointerdown', e => {
     if (wiping || e.target.closest('.hc-arrow')) return;
+    stop();                                  // don't let autoplay hijack the drag
     startX = e.clientX; dir = null;
     hCar.classList.add('used');
     hCar.setPointerCapture(e.pointerId);
@@ -149,10 +156,12 @@ if (HN > 1) {
   hCar.addEventListener('pointermove', e => {
     if (startX === null || wiping) return;
     const dx = e.clientX - startX;
-    if (!dir && Math.abs(dx) > 8) {
-      dir = dx < 0 ? 'right' : 'left';
+    const want = dx < -8 ? 'right' : dx > 8 ? 'left' : null;
+    if (want && want !== dir) {              // allow reversing direction mid-drag
+      clearPeek();
+      dir = want; peekFrom = dir;
       peekIdx = dir === 'right' ? (hCur + 1) % HN : (hCur - 1 + HN) % HN;
-      peekEl = hImgs[peekIdx]; peekFrom = dir;
+      peekEl = hImgs[peekIdx];
       peekEl.classList.add('peek');
       hCar.classList.add('wiping');
       state.pos = dir === 'right' ? 100 : 0;
@@ -173,9 +182,9 @@ if (HN > 1) {
       pos: dir === 'right' ? (done ? 0 : 100) : (done ? 100 : 0),
       duration: .6, ease: 'power3.out', onUpdate: applyWipe,
       onComplete: () => {
-        if (done) { commitWipe(); stop(); auto(); }
-        else clearPeek();
+        if (done) commitWipe(); else clearPeek();
         wiping = false; dir = null;
+        if (!hCar.matches(':hover')) auto();  // resume autoplay unless still hovering
       }
     });
   };
@@ -264,11 +273,14 @@ ScrollTrigger.create({
 
 /* ---------------- mobile nav ---------------- */
 const burger = $('#burger'), mnav = $('#mnav');
+const bgEls = $$('main,.head,.foot,.rail');
 burger.addEventListener('click', () => {
   const open = mnav.classList.toggle('open');
   burger.classList.toggle('open', open);
   burger.setAttribute('aria-expanded', open);
   mnav.setAttribute('aria-hidden', !open);
+  mnav.toggleAttribute('inert', !open);
+  bgEls.forEach(el => el.toggleAttribute('inert', open));
   if (lenis) open ? lenis.stop() : lenis.start();
   document.body.style.overflow = open ? 'hidden' : '';
 });
@@ -312,13 +324,14 @@ $$('[data-count]').forEach(el => {
 
 /* ---------------- before / after slider ---------------- */
 (() => {
-  const ba = $('#ba'), wrap = $('#ba-before-wrap'), handle = $('#ba-handle');
+  const ba = $('#ba'), wrap = $('#ba-before-wrap'), handle = $('#ba-handle'), ui = $('#ba-ui');
   if (!ba) return;
   const setPct = p => {
     p = Math.min(Math.max(p, 2), 98);
     wrap.style.width = p + '%';
     handle.style.left = p + '%';
     wrap.querySelector('img').style.width = ba.offsetWidth + 'px';
+    if (ui) ui.style.clipPath = `inset(0 0 0 ${p}%)`;
   };
   const setX = x => {
     const r = ba.getBoundingClientRect();
@@ -338,14 +351,21 @@ $$('[data-count]').forEach(el => {
     }
   });
 
-  let drag = false;
+  /* only engage after a real horizontal move — taps meant to scroll don't jiggle the handle */
+  let drag = false, armed = false, sx = 0;
   ba.addEventListener('pointerdown', e => {
     if (e.target.closest('.ba-spot')) return;
-    drag = true; ba.classList.add('used');
-    ba.setPointerCapture(e.pointerId); setX(e.clientX);
+    armed = true; sx = e.clientX;
+    ba.setPointerCapture(e.pointerId);
   });
-  ba.addEventListener('pointermove', e => drag && setX(e.clientX));
-  addEventListener('pointerup', () => drag = false);
+  ba.addEventListener('pointermove', e => {
+    if (!armed) return;
+    if (!drag && Math.abs(e.clientX - sx) > 6) { drag = true; ba.classList.add('used'); }
+    if (drag) setX(e.clientX);
+  });
+  const endDrag = () => { armed = false; drag = false; };
+  addEventListener('pointerup', endDrag);
+  ba.addEventListener('pointercancel', endDrag);
 })();
 
 /* ---------------- process — dashed curve through the cards ---------------- */
@@ -355,7 +375,13 @@ $$('[data-count]').forEach(el => {
   if (!wrap || !cells.length) return;
 
   let L = 0, fracs = [];
+  const narrow = matchMedia('(max-width:1024px)');   // 2-col/1-col grids: the snake crosses cards
   const draw = () => {
+    if (narrow.matches) {
+      line.setAttribute('d', ''); fill.setAttribute('d', '');
+      cells.forEach(c => c.classList.add('step-on'));
+      return;
+    }
     const wr = wrap.getBoundingClientRect();
     const pts = badges.map(b => {
       const r = b.getBoundingClientRect();
@@ -392,6 +418,7 @@ $$('[data-count]').forEach(el => {
   draw();
   addEventListener('load', draw);
   addEventListener('resize', draw);
+  narrow.addEventListener('change', draw);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw);
 
   /* continuous travelling pulse — always animating */
@@ -400,6 +427,7 @@ $$('[data-count]').forEach(el => {
     gsap.to(pulse, {
       v: 1, duration: 4.6, ease: 'none', repeat: -1,
       onUpdate() {
+        if (narrow.matches) return;   // draw() already lit every step
         fill.style.strokeDashoffset = -(pulse.v * L);
         cells.forEach((c, i) => {
           c.classList.toggle('step-on', pulse.v + 0.26 >= fracs[i]);
@@ -440,7 +468,9 @@ function fillProject(i) {
     'Location — ' + (parts[1] || 'Dubai').trim() + '<br>' +
     'Year — ' + el.dataset.year + '<br>Status — Delivered';
   const pool = ['g1.jpg', 'g2.jpg', 'g3.jpg', 'g5.jpg', 'g6.jpg', 'g7.jpg'];
-  $$('.pp-thumbs img').forEach((t, k) => t.src = 'assets/img/' + pool[(i + k) % pool.length]);
+  const thumbs = (el.dataset.thumbs || '').split(',').map(s => s.trim()).filter(Boolean);
+  $$('.pp-thumbs img').forEach((t, k) =>
+    t.src = 'assets/img/' + (thumbs[k] || pool[(i + k) % pool.length]));
 }
 
 function openProject(i) {
@@ -448,25 +478,33 @@ function openProject(i) {
   ppOpen = true;
   pp.classList.add('open');
   pp.setAttribute('aria-hidden', 'false');
+  pp.removeAttribute('inert');
+  bgEls.forEach(el => el.setAttribute('inert', ''));
   ppBody.scrollTop = 0;
   if (lenis) lenis.stop();
   document.body.style.overflow = 'hidden';
-  gsap.from('.pp-hero img', { scale: 1.15, duration: 1.1, ease: 'power3.out' });
-  gsap.from('.pp-body > *', { y: 26, opacity: 0, stagger: 0.06, duration: 0.7, ease: 'power3.out', delay: 0.25 });
+  $('.pp-close').focus();
+  if (!REDUCED) {
+    gsap.from('.pp-hero img', { scale: 1.15, duration: 1.1, ease: 'power3.out' });
+    gsap.from('.pp-body > *', { y: 26, opacity: 0, stagger: 0.06, duration: 0.7, ease: 'power3.out', delay: 0.25 });
+  }
 }
 function closeProject() {
   pp.classList.remove('open');
   pp.setAttribute('aria-hidden', 'true');
+  pp.setAttribute('inert', '');
+  bgEls.forEach(el => el.removeAttribute('inert'));
   ppOpen = false;
   if (lenis) lenis.start();
   document.body.style.overflow = '';
+  rows[ppIdx].focus();
 }
 rows.forEach((r, i) => r.addEventListener('click', e => { e.preventDefault(); openProject(i); }));
 $('.pp-close').addEventListener('click', closeProject);
 $('.pp-next').addEventListener('click', () => {
   fillProject((ppIdx + 1) % rows.length);
   ppBody.scrollTop = 0;
-  gsap.from('.pp-hero img', { scale: 1.15, duration: 1, ease: 'power3.out' });
+  if (!REDUCED) gsap.from('.pp-hero img', { scale: 1.15, duration: 1, ease: 'power3.out' });
 });
 addEventListener('keydown', e => {
   if (e.key === 'Escape') { if (ppOpen) closeProject(); else if (mnav.classList.contains('open')) burger.click(); }
