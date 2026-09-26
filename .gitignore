@@ -5,3 +5,5 @@ _qa/
 Thumbs.db
 OneDrive_*.zip
 OneDrive_*/
+__pycache__/
+image_manifest.json
