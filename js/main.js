@@ -68,20 +68,19 @@ let peekIdx = 1, peekFrom = 'right', peekEl = null;
 
 /* per-slide context for the floating chips */
 const HERO_CTX = [
-  { b: 'Villa 172',       s: 'Emirates Hills — Dubai', y: '2024', t: 'Residential fit-out', p: 0 },
-  { b: 'Amulfi Villa 08', s: 'Jumeirah Bay — Dubai',   y: '2023', t: 'Residential',         p: 1 },
-  { b: 'CFO Office',      s: 'Jafza LOB 17 — Dubai',   y: '2022', t: 'Commercial',          p: 2 },
+  { b: 'Hattan Villa',    s: 'Arabian Ranches — Dubai', y: 'Residential', t: 'Renovation',    href: 'project-hattan-villa/' },
+  { b: 'Landscape & Pools', s: 'Outdoor works — UAE',   y: 'Landscape',   t: 'Design + build', href: 'project-landscape/' },
+  { b: 'CFO Office',      s: 'Jafza LOB 17 — Dubai',    y: 'Commercial',  t: 'Fit-out',        href: 'project-cfo-office/' },
 ];
 const chipA = $('#chip-a'), chipB = $('#chip-b');
 const setCtx = i => {
   const c = HERO_CTX[i % HERO_CTX.length];
-  chipA.dataset.proj = c.p; chipB.dataset.proj = c.p;
+  chipA.href = c.href; chipB.href = c.href;
   chipA.innerHTML = `<b>${c.b}</b><span>${c.s}</span>`;
   chipB.innerHTML = `<b>${c.y}</b><span>${c.t}</span>`;
   if (!REDUCED) gsap.fromTo([chipA, chipB], { opacity: 0, y: 10 },
     { opacity: 1, y: 0, duration: .55, ease: 'power3.out', stagger: .08, delay: .15 });
 };
-[chipA, chipB].forEach(ch => ch.addEventListener('click', () => openProject(+ch.dataset.proj || 0)));
 
 const applyWipe = () => {
   if (!peekEl) return;
@@ -256,14 +255,9 @@ $$('.reveal').forEach(el => io.observe(el));
 
 /* ---------------- header ---------------- */
 const head = $('#head');
-let lastY = 0;
 addEventListener('scroll', () => {
-  const y = scrollY;
-  head.classList.toggle('scrolled', y > 60);
-  head.style.transform = (y > 500 && y > lastY) ? 'translateY(-100%)' : '';
-  lastY = y;
+  head.classList.toggle('scrolled', scrollY > 60);
 }, { passive: true });
-head.style.transition = 'background .4s,border-color .4s,backdrop-filter .4s,transform .5s cubic-bezier(.22,1,.36,1)';
 
 /* ---------------- scroll rail ---------------- */
 ScrollTrigger.create({
@@ -440,72 +434,6 @@ $$('[data-count]').forEach(el => {
   }
 })();
 
-/* ---------------- project overlay ---------------- */
-const pp = $('#pp');
-const ppBody = $('.pp-inner');
-let ppIdx = 0, ppOpen = false;
-const rows = $$('.pcard');
-
-const PP_COPY = {
-  'VILLA 172': 'A full interior renovation in Emirates Hills — marble floors, warm oak joinery and a palette built around daylight. Living spaces open onto the pool; every finish was produced by our in-house craftsmen.',
-  'AMULFI VILLA 08': 'A family villa on Jumeirah Bay designed around texture — terracotta walls, herringbone floors and joinery that reads as furniture. Interior and garden were composed as one continuous space.',
-  'CFO OFFICE — DP WORLD': 'An executive suite at JAFZA LOB 17 — dark timber, copper detailing and controlled light. Reception, office and majlis planned as a sequence of calibrated thresholds.',
-  "SUSAN'S BAKING CO.": 'A retail and F&B fit-out for Susan\'s Baking Co. — counters, shelving and signage built in our joinery, with a palette tuned to the brand. From drawings to opening day under one team.',
-  'JBR WASHROOM': 'A complete washroom renovation in JLT — demolished to the shell, replumbed, retiled and refitted with custom vanity, mirror and lighting. A small room treated with the same discipline as a villa.',
-  'VILLA 32': 'A villa renovation in Arabian Ranches — interiors reworked room by room with new joinery, flooring and lighting, executed by our in-house team while the family remained in residence.'
-};
-
-function fillProject(i) {
-  const el = rows[i]; ppIdx = i;
-  $('.pp-hero img').src = el.dataset.img;
-  $('.pp-num').textContent = 'N°' + String(i + 1).padStart(2, '0') + ' — ' + el.dataset.year;
-  $('.pp-title').textContent = el.dataset.title;
-  $('.pp-meta').textContent = el.dataset.meta;
-  $('.pp-desc').textContent = PP_COPY[el.dataset.title] || '';
-  const parts = el.dataset.meta.split('—');
-  $('.pp-facts').innerHTML =
-    'Sector — ' + (parts[0] || '').trim() + '<br>' +
-    'Location — ' + (parts[1] || 'Dubai').trim() + '<br>' +
-    'Year — ' + el.dataset.year + '<br>Status — Delivered';
-  const pool = ['g1.jpg', 'g2.jpg', 'g3.jpg', 'g5.jpg', 'g6.jpg', 'g7.jpg'];
-  const thumbs = (el.dataset.thumbs || '').split(',').map(s => s.trim()).filter(Boolean);
-  $$('.pp-thumbs img').forEach((t, k) =>
-    t.src = 'assets/img/' + (thumbs[k] || pool[(i + k) % pool.length]));
-}
-
-function openProject(i) {
-  fillProject(i);
-  ppOpen = true;
-  pp.classList.add('open');
-  pp.setAttribute('aria-hidden', 'false');
-  pp.removeAttribute('inert');
-  bgEls.forEach(el => el.setAttribute('inert', ''));
-  ppBody.scrollTop = 0;
-  if (lenis) lenis.stop();
-  document.body.style.overflow = 'hidden';
-  $('.pp-close').focus();
-  if (!REDUCED) {
-    gsap.from('.pp-hero img', { scale: 1.15, duration: 1.1, ease: 'power3.out' });
-    gsap.from('.pp-body > *', { y: 26, opacity: 0, stagger: 0.06, duration: 0.7, ease: 'power3.out', delay: 0.25 });
-  }
-}
-function closeProject() {
-  pp.classList.remove('open');
-  pp.setAttribute('aria-hidden', 'true');
-  pp.setAttribute('inert', '');
-  bgEls.forEach(el => el.removeAttribute('inert'));
-  ppOpen = false;
-  if (lenis) lenis.start();
-  document.body.style.overflow = '';
-  rows[ppIdx].focus();
-}
-rows.forEach((r, i) => r.addEventListener('click', e => { e.preventDefault(); openProject(i); }));
-$('.pp-close').addEventListener('click', closeProject);
-$('.pp-next').addEventListener('click', () => {
-  fillProject((ppIdx + 1) % rows.length);
-  ppBody.scrollTop = 0;
-  if (!REDUCED) gsap.from('.pp-hero img', { scale: 1.15, duration: 1, ease: 'power3.out' });
-});
 addEventListener('keydown', e => {
-  if (e.key === 'Escape') { if (ppOpen) closeProject(); else if (mnav.classList.contains('open')) burger.click(); }
+  if (e.key === 'Escape' && mnav.classList.contains('open')) burger.click();
 });
