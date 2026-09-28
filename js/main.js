@@ -1,70 +1,28 @@
 /* ============================================================
-   OPRELL — professional UI
-   smooth scroll · reveals · drag compare · project overlay
+   OPRELL — homepage only
+   hero carousel · word rotator · before/after · process line
+   Requires common.js first ($, $$, ANIM, FX, REDUCED, lenis).
+   Everything degrades gracefully without gsap.
    ============================================================ */
-gsap.registerPlugin(ScrollTrigger);
 
-const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const $  = s => document.querySelector(s);
-const $$ = s => [...document.querySelectorAll(s)];
+/* ---------------- hero image settle (was tied to loader) ---------------- */
+if (ANIM) gsap.to('.hero-carousel img', { scale: 1, duration: 1.6, ease: 'power3.out', delay: .2 });
 
-/* ---------------- loader ---------------- */
-const loader = $('#loader');
-setTimeout(() => {
-  loader.classList.add('out');
-  document.body.classList.add('loaded');
-  gsap.to('.hero-carousel img', { scale: 1, duration: 1.6, ease: 'power3.out' });
-  setTimeout(() => loader.remove(), 600);
-}, 1200);
-
-/* ---------------- custom cursor ---------------- */
-const cur = $('#cursor');
-if (matchMedia('(hover:hover) and (pointer:fine)').matches && !REDUCED) {
-  document.body.classList.add('cur-on');
-  const cx = gsap.quickTo(cur, 'x', { duration: 0.12, ease: 'power3' });
-  const cy = gsap.quickTo(cur, 'y', { duration: 0.12, ease: 'power3' });
-  const txt = $('.cur-txt');
-  addEventListener('mousemove', e => { cx(e.clientX); cy(e.clientY); });
-  document.addEventListener('mouseover', e => {
-    const spot = e.target.closest('.ba-spot');
-    const view = e.target.closest('[data-cursor="view"]');
-    const drag = e.target.closest('[data-cursor="drag"]');
-    const hov = spot || e.target.closest('a,button,[data-mag],.svcard,.pcell');
-    cur.classList.toggle('view', !!view);
-    cur.classList.toggle('drag', !!drag && !spot);
-    cur.classList.toggle('hov', !!hov && !view && !drag);
-    txt.textContent = view ? 'VIEW' : drag ? 'DRAG' : '';
+/* ---------------- services — cards swipe up on scroll ---------------- */
+if (ANIM) $$('.svcard').forEach(card => {
+  gsap.fromTo(card, { y: 110, opacity: 0, scale: .96 }, {
+    y: 0, opacity: 1, scale: 1, ease: 'none',
+    scrollTrigger: { trigger: card, start: 'top 98%', end: 'top 58%', scrub: .8 }
   });
-}
-
-/* ---------------- magnetic ---------------- */
-if (!REDUCED) $$('[data-mag]').forEach(el => {
-  el.addEventListener('mousemove', e => {
-    const r = el.getBoundingClientRect();
-    gsap.to(el, { x: (e.clientX - r.left - r.width/2) * .3, y: (e.clientY - r.top - r.height/2) * .3, duration: .4, ease: 'power3.out' });
-  });
-  el.addEventListener('mouseleave', () => gsap.to(el, { x: 0, y: 0, duration: .7, ease: 'elastic.out(1,.4)' }));
 });
 
-/* ---------------- card tilt ---------------- */
-if (!REDUCED) $$('[data-tilt]').forEach(el => {
-  el.addEventListener('mousemove', e => {
-    const r = el.getBoundingClientRect();
-    const px = (e.clientX - r.left) / r.width - .5, py = (e.clientY - r.top) / r.height - .5;
-    gsap.to(el, { rotateY: px * 6, rotateX: -py * 6, y: -4, duration: .5, ease: 'power3.out', transformPerspective: 900 });
-  });
-  el.addEventListener('mouseleave', () => gsap.to(el, { rotateX: 0, rotateY: 0, y: 0, duration: .7, ease: 'power3.out' }));
-});
-
-/* ---------------- hero slider — drag-to-wipe (like Before/After) ---------------- */
+/* ---------------- hero slider — swipe ---------------- */
 const hImgs = $$('#hero-carousel img');
 const dotsBox = $('#hero-dots');
 const hCar = $('#hero-carousel');
-const hDiv = $('#hc-div');
 const HN = hImgs.length;
-let hCur = 0, hTimer = null, wiping = false;
-const state = { pos: 100 };        // divider position %
-let peekIdx = 1, peekFrom = 'right', peekEl = null;
+let hCur = 0, hTimer = null, swiping = false;
+let swIdx = -1, swDir = 0;         // incoming slide index + direction (+1 next / -1 prev)
 
 /* per-slide context for the floating chips */
 const HERO_CTX = [
@@ -72,40 +30,23 @@ const HERO_CTX = [
   { b: 'Landscape & Pools', s: 'Outdoor works — UAE',   y: 'Landscape',   t: 'Design + build', href: 'project-landscape/' },
   { b: 'CFO Office',      s: 'Jafza LOB 17 — Dubai',    y: 'Commercial',  t: 'Fit-out',        href: 'project-cfo-office/' },
 ];
-const chipA = $('#chip-a'), chipB = $('#chip-b');
+const chipA = $('#chip-a'), chipB = $('#chip-b'), chipM = $('#chip-m');
 const setCtx = i => {
   const c = HERO_CTX[i % HERO_CTX.length];
-  chipA.href = c.href; chipB.href = c.href;
+  [chipA, chipB, chipM].forEach(ch => { if (ch) ch.href = c.href; });
   chipA.innerHTML = `<b>${c.b}</b><span>${c.s}</span>`;
   chipB.innerHTML = `<b>${c.y}</b><span>${c.t}</span>`;
-  if (!REDUCED) gsap.fromTo([chipA, chipB], { opacity: 0, y: 10 },
+  if (chipM) chipM.innerHTML = `<b>${c.b}</b><span>${c.s} →</span>`;
+  if (ANIM) gsap.fromTo([chipA, chipB], { opacity: 0, y: 10 },
     { opacity: 1, y: 0, duration: .55, ease: 'power3.out', stagger: .08, delay: .15 });
 };
 
-const applyWipe = () => {
-  if (!peekEl) return;
-  if (peekFrom === 'right') {
-    peekEl.style.clipPath = `inset(0 0 0 ${state.pos}%)`;
-    hDiv.style.left = state.pos + '%';
-  } else {
-    peekEl.style.clipPath = `inset(0 ${100 - state.pos}% 0 0)`;
-    hDiv.style.left = (100 - state.pos) + '%';
-  }
-};
-const clearPeek = () => {
-  if (peekEl) { peekEl.classList.remove('peek'); peekEl.style.clipPath = ''; peekEl = null; }
-  hCar.classList.remove('wiping');
-};
-const commitWipe = () => {
-  hImgs[hCur].classList.remove('on');
-  hCur = peekIdx;
-  hImgs[hCur].classList.add('on');
+const updateUI = () => {
   [...dotsBox.children].forEach((d, i) => {
     d.classList.toggle('on', i === hCur);
     d.toggleAttribute('aria-current', i === hCur);
   });
   setCtx(hCur);
-  clearPeek();
 };
 
 if (HN > 1) {
@@ -116,79 +57,100 @@ if (HN > 1) {
     if (!i) { d.classList.add('on'); d.setAttribute('aria-current', 'true'); }
     dotsBox.appendChild(d);
   });
-  const wipe = (target, from, dur = 1.2) => {
-    if (wiping || target === hCur) return;
-    wiping = true; peekIdx = target; peekFrom = from;
-    peekEl = hImgs[peekIdx];
-    peekEl.classList.add('peek');
-    hCar.classList.add('wiping');
-    state.pos = from === 'right' ? 100 : 0;
-    applyWipe();
-    gsap.to(state, {
-      pos: from === 'right' ? 0 : 100, duration: dur, ease: 'power3.inOut',
-      onUpdate: applyWipe,
-      onComplete: () => { commitWipe(); wiping = false; }
-    });
-  };
-  const next = () => wipe((hCur + 1) % HN, 'right');
-  const prev = () => wipe((hCur - 1 + HN) % HN, 'left');
-  const auto = () => { if (!REDUCED) hTimer = setInterval(next, 5500); };
-  const stop = () => { clearInterval(hTimer); hTimer = null; };
-  auto();
-  [...dotsBox.children].forEach((d, i) => d.addEventListener('click', () => {
-    stop(); wipe(i, i > hCur ? 'right' : 'left', .9); auto();
-  }));
-  $('#hc-prev').addEventListener('click', e => { e.stopPropagation(); stop(); prev(); auto(); });
-  $('#hc-next').addEventListener('click', e => { e.stopPropagation(); stop(); next(); auto(); });
-  hCar.addEventListener('mouseenter', stop);
-  hCar.addEventListener('mouseleave', () => { if (!hTimer) auto(); });
 
-  /* drag the divider */
-  let startX = null, dir = null;
-  hCar.addEventListener('pointerdown', e => {
-    if (wiping || e.target.closest('.hc-arrow')) return;
-    stop();                                  // don't let autoplay hijack the drag
-    startX = e.clientX; dir = null;
-    hCar.classList.add('used');
-    hCar.setPointerCapture(e.pointerId);
-  });
-  hCar.addEventListener('pointermove', e => {
-    if (startX === null || wiping) return;
-    const dx = e.clientX - startX;
-    const want = dx < -8 ? 'right' : dx > 8 ? 'left' : null;
-    if (want && want !== dir) {              // allow reversing direction mid-drag
-      clearPeek();
-      dir = want; peekFrom = dir;
-      peekIdx = dir === 'right' ? (hCur + 1) % HN : (hCur - 1 + HN) % HN;
-      peekEl = hImgs[peekIdx];
-      peekEl.classList.add('peek');
-      hCar.classList.add('wiping');
-      state.pos = dir === 'right' ? 100 : 0;
-    }
-    if (dir) {
-      state.pos = Math.min(Math.max(
-        dir === 'right' ? 100 + dx / hCar.offsetWidth * 100 : dx / hCar.offsetWidth * 100, 0), 100);
-      applyWipe();
-    }
-  });
-  const endDrag = () => {
-    if (startX === null) return;
-    startX = null;
-    if (!dir || wiping) return;
-    const done = dir === 'right' ? state.pos < 45 : state.pos > 55;
-    wiping = true;
-    gsap.to(state, {
-      pos: dir === 'right' ? (done ? 0 : 100) : (done ? 100 : 0),
-      duration: .6, ease: 'power3.out', onUpdate: applyWipe,
-      onComplete: () => {
-        if (done) commitWipe(); else clearPeek();
-        wiping = false; dir = null;
-        if (!hCar.matches(':hover')) auto();  // resume autoplay unless still hovering
+  const stop = () => { clearInterval(hTimer); hTimer = null; };
+  const auto = () => { if (!REDUCED && !hTimer) hTimer = setInterval(() => go(1), 5500); };
+
+  let go;
+  if (ANIM) {
+    const cW = () => hCar.offsetWidth;
+    const begin = (dir, idx) => {            // stage the incoming slide at the edge
+      swDir = dir;
+      swIdx = idx !== undefined ? idx : (hCur + dir + HN) % HN;
+      hImgs[swIdx].classList.add('on');
+      gsap.set(hImgs[hCur], { x: 0 });
+      gsap.set(hImgs[swIdx], { x: dir * cW() });
+    };
+    const settle = commit => {               // snap to the slide or back
+      const incoming = hImgs[swIdx], outgoing = hImgs[hCur];
+      swiping = true;
+      gsap.to(outgoing, { x: commit ? -swDir * cW() : 0, duration: .55, ease: 'power3.out' });
+      gsap.to(incoming, { x: commit ? 0 : swDir * cW(), duration: .55, ease: 'power3.out',
+        onComplete() {
+          (commit ? outgoing : incoming).classList.remove('on');
+          gsap.set(commit ? outgoing : incoming, { x: 0 });
+          if (commit) { hCur = swIdx; updateUI(); }
+          swiping = false; swIdx = -1; swDir = 0;
+        }});
+    };
+    go = (dir, idx) => {                     // arrows / dots / autoplay
+      if (swiping || startX !== null) return;
+      if (idx !== undefined && (idx === hCur || idx >= HN)) return;
+      begin(dir, idx);
+      settle(true);
+    };
+
+    /* swipe — slides follow the finger */
+    let startX = null, swDx = 0;
+    hCar.addEventListener('pointerdown', e => {
+      if (swiping || e.target.closest('.hc-arrow')) return;
+      stop();                                // don't let autoplay hijack the drag
+      startX = e.clientX; swDx = 0;
+      hCar.classList.add('used');
+      hCar.setPointerCapture(e.pointerId);
+    });
+    hCar.addEventListener('pointermove', e => {
+      if (startX === null || swiping) return;
+      const dx = e.clientX - startX;
+      swDx = dx;
+      const dir = dx < -8 ? 1 : dx > 8 ? -1 : 0;
+      if (dir && dir !== swDir) {            // reversing direction mid-swipe
+        if (swIdx >= 0) { hImgs[swIdx].classList.remove('on'); gsap.set(hImgs[swIdx], { x: 0 }); }
+        begin(dir);
+      }
+      if (swIdx >= 0) {
+        gsap.set(hImgs[hCur], { x: dx });
+        gsap.set(hImgs[swIdx], { x: dx + swDir * cW() });
       }
     });
-  };
-  hCar.addEventListener('pointerup', endDrag);
-  hCar.addEventListener('pointercancel', endDrag);
+    const endSwipe = () => {
+      if (startX === null) return;
+      startX = null;
+      if (swIdx < 0 || swiping) return;
+      settle(Math.abs(swDx) > cW() * 0.18);  // past 18% of width → commit
+      if (!hCar.matches(':hover')) auto();   // resume autoplay unless still hovering
+    };
+    hCar.addEventListener('pointerup', endSwipe);
+    hCar.addEventListener('pointercancel', endSwipe);
+  } else {
+    /* no-gsap fallback — instant/fade switch, same controls */
+    let downX = null;
+    go = (dir, idx) => {
+      const next = idx !== undefined ? idx : (hCur + dir + HN) % HN;
+      if (next === hCur || next >= HN) return;
+      hImgs[hCur].classList.remove('on');
+      hImgs[next].classList.add('on');
+      hCur = next; updateUI();
+    };
+    hCar.addEventListener('pointerdown', e => { downX = e.clientX; stop(); });
+    hCar.addEventListener('pointerup', e => {
+      if (downX === null) return;
+      const dx = e.clientX - downX; downX = null;
+      if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1);
+      auto();
+    });
+  }
+
+  auto();
+  [...dotsBox.children].forEach((d, i) => d.addEventListener('click', () => {
+    stop(); go(i > hCur ? 1 : -1, i); auto();
+  }));
+  $('#hc-prev').addEventListener('click', e => { e.stopPropagation(); stop(); go(-1); auto(); });
+  $('#hc-next').addEventListener('click', e => { e.stopPropagation(); stop(); go(1); auto(); });
+  hCar.addEventListener('mouseenter', stop);
+  hCar.addEventListener('mouseleave', () => { if (!hTimer) auto(); });
+  document.addEventListener('visibilitychange', () =>
+    document.hidden ? stop() : auto());
 }
 
 /* ---------------- hero word rotator — letter flip ---------------- */
@@ -198,8 +160,12 @@ if (HN > 1) {
   words.forEach(w => {
     w.innerHTML = [...w.textContent].map(c => `<b>${c}</b>`).join('');
   });
-  rw.style.width = words[0].offsetWidth + 'px';
   let wi = 0, busy = false;
+  const sizeTo = () => { rw.style.width = words[wi].offsetWidth + 'px'; };
+  sizeTo();
+  /* first measure ran before the webfont — re-measure once it lands */
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(sizeTo);
+  if (!ANIM) return;
   const flip = () => {
     if (busy) return; busy = true;
     const out = words[wi], next = words[(wi + 1) % words.length];
@@ -217,11 +183,11 @@ if (HN > 1) {
       { yPercent: 0, opacity: 1, duration: .5, ease: 'power3.out', stagger: .024, delay: outDur,
         onComplete: () => { busy = false; } });
   };
-  if (!REDUCED) setInterval(flip, 3600);
+  setInterval(flip, 3600);
 })();
 
 /* ---------------- hero media tilt + chip parallax ---------------- */
-if (!REDUCED) {
+if (FX) {
   const media = $('#hero-media'), chips = $$('.hero-chip');
   media.addEventListener('mousemove', e => {
     const r = media.getBoundingClientRect();
@@ -236,86 +202,6 @@ if (!REDUCED) {
   });
 }
 
-
-
-/* ---------------- smooth scroll ---------------- */
-let lenis = null;
-if (!REDUCED && window.Lenis) {
-  lenis = new Lenis({ duration: 1.1, smoothWheel: true });
-  lenis.on('scroll', ScrollTrigger.update);
-  gsap.ticker.add(t => lenis.raf(t * 1000));
-  gsap.ticker.lagSmoothing(0);
-}
-
-/* ---------------- reveals ---------------- */
-const io = new IntersectionObserver(es => es.forEach(e => {
-  if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
-}), { threshold: 0.12 });
-$$('.reveal').forEach(el => io.observe(el));
-
-/* ---------------- header ---------------- */
-const head = $('#head');
-addEventListener('scroll', () => {
-  head.classList.toggle('scrolled', scrollY > 60);
-}, { passive: true });
-
-/* ---------------- scroll rail ---------------- */
-ScrollTrigger.create({
-  start: 0, end: 'max',
-  onUpdate: s => { $('.rail i').style.transform = `scaleY(${s.progress})`; }
-});
-
-/* ---------------- mobile nav ---------------- */
-const burger = $('#burger'), mnav = $('#mnav');
-const bgEls = $$('main,.head,.foot,.rail');
-burger.addEventListener('click', () => {
-  const open = mnav.classList.toggle('open');
-  burger.classList.toggle('open', open);
-  burger.setAttribute('aria-expanded', open);
-  mnav.setAttribute('aria-hidden', !open);
-  mnav.toggleAttribute('inert', !open);
-  bgEls.forEach(el => el.toggleAttribute('inert', open));
-  if (lenis) open ? lenis.stop() : lenis.start();
-  document.body.style.overflow = open ? 'hidden' : '';
-});
-$('#mnav-close').addEventListener('click', () => burger.click());
-
-/* ---------------- anchors — smooth eased travel ---------------- */
-$$('a[href^="#"]').forEach(a => a.addEventListener('click', e => {
-  const id = a.getAttribute('href');
-  if (id === '#') { e.preventDefault(); return; }
-  const t = id === '#top' ? 0 : document.querySelector(id);
-  if (t === null) return;
-  e.preventDefault();
-  if (mnav.classList.contains('open')) burger.click();
-  const offset = id === '#top' ? 0 : -90;          // clear the fixed header
-  const ease = x => 1 - Math.pow(1 - x, 4);        // long soft ease-out
-  if (lenis) lenis.scrollTo(t, { offset, duration: 1.6, easing: ease });
-  else if (t === 0) scrollTo({ top: 0, behavior: 'smooth' });
-  else t.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}));
-
-/* ---------------- subtle parallax ---------------- */
-if (!REDUCED) $$('[data-parallax]').forEach(img => {
-  gsap.fromTo(img, { yPercent: -6 }, {
-    yPercent: 6, ease: 'none',
-    scrollTrigger: { trigger: img.closest('figure'), start: 'top bottom', end: 'bottom top', scrub: true }
-  });
-});
-
-/* ---------------- counters ---------------- */
-$$('[data-count]').forEach(el => {
-  const end = +el.dataset.count;
-  ScrollTrigger.create({
-    trigger: el, start: 'top 88%', once: true,
-    onEnter() {
-      gsap.fromTo(el, { innerText: 0 }, {
-        innerText: end, duration: 1.6, ease: 'power2.out', snap: { innerText: 1 }
-      });
-    }
-  });
-});
-
 /* ---------------- before / after slider ---------------- */
 (() => {
   const ba = $('#ba'), wrap = $('#ba-before-wrap'), handle = $('#ba-handle'), ui = $('#ba-ui');
@@ -324,6 +210,7 @@ $$('[data-count]').forEach(el => {
     p = Math.min(Math.max(p, 2), 98);
     wrap.style.width = p + '%';
     handle.style.left = p + '%';
+    handle.setAttribute('aria-valuenow', Math.round(p));
     wrap.querySelector('img').style.width = ba.offsetWidth + 'px';
     if (ui) ui.style.clipPath = `inset(0 0 0 ${p}%)`;
   };
@@ -335,7 +222,7 @@ $$('[data-count]').forEach(el => {
   addEventListener('resize', () => setPct(parseFloat(wrap.style.width) || 50));
 
   /* invite: gentle sweep when it scrolls into view */
-  if (!REDUCED) ScrollTrigger.create({
+  if (ANIM) ScrollTrigger.create({
     trigger: ba, start: 'top 70%', once: true,
     onEnter() {
       const proxy = { p: 50 };
@@ -360,6 +247,31 @@ $$('[data-count]').forEach(el => {
   const endDrag = () => { armed = false; drag = false; };
   addEventListener('pointerup', endDrag);
   ba.addEventListener('pointercancel', endDrag);
+
+  /* keyboard access — the handle is a real slider */
+  handle.addEventListener('keydown', e => {
+    const cur = parseFloat(handle.getAttribute('aria-valuenow')) || 50;
+    let p = cur;
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') p -= 4;
+    else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') p += 4;
+    else if (e.key === 'Home') p = 2;
+    else if (e.key === 'End') p = 98;
+    else return;
+    e.preventDefault();
+    ba.classList.add('used');
+    setPct(p);
+  });
+
+  /* hotspots — tap toggles the note (hover still works on desktop) */
+  const spots = $$('.ba-spot');
+  spots.forEach(sp => sp.addEventListener('click', e => {
+    e.stopPropagation();
+    const was = sp.classList.contains('open');
+    spots.forEach(o => o.classList.remove('open'));
+    if (!was) sp.classList.add('open');
+  }));
+  document.addEventListener('click', () =>
+    spots.forEach(o => o.classList.remove('open')));
 })();
 
 /* ---------------- process — dashed curve through the cards ---------------- */
@@ -416,7 +328,7 @@ $$('[data-count]').forEach(el => {
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw);
 
   /* continuous travelling pulse — always animating */
-  if (!REDUCED) {
+  if (ANIM) {
     const pulse = { v: 0 };
     gsap.to(pulse, {
       v: 1, duration: 4.6, ease: 'none', repeat: -1,
@@ -433,7 +345,3 @@ $$('[data-count]').forEach(el => {
     cells.forEach(c => c.classList.add('step-on'));
   }
 })();
-
-addEventListener('keydown', e => {
-  if (e.key === 'Escape' && mnav.classList.contains('open')) burger.click();
-});
