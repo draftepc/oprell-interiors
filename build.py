@@ -19,7 +19,7 @@ import re
 import glob
 
 SITE = 'https://oprell.ae'
-V = 'v=23'                      # bump to bust caches on deploy
+V = 'v=24'                      # bump to bust caches on deploy
 EMAIL = 'contact@oprell.ae'
 PHONE_DISP = '+971 52 520 1792'
 PHONE_TEL = 'tel:+971525201792'
