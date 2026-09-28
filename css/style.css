@@ -285,18 +285,9 @@ button{background:none;border:none;color:inherit;font:inherit;cursor:pointer}
 .pcard figure{aspect-ratio:16/10;overflow:hidden}
 .pcard img{transition:transform 1s var(--ease)}
 .pcard:hover img{transform:scale(1.05)}
-.pcard-info{
-  display:flex;align-items:flex-start;justify-content:space-between;gap:.9rem;
-  flex-wrap:wrap;padding:1.3rem 1.4rem;flex:1;
-}
+.pcard-info{padding:1.3rem 1.4rem}
 .pcard-info h3{font-size:1.2rem;font-weight:700;letter-spacing:-.02em}
 .pcard-info p{font-size:.85rem;color:var(--ink-2);margin-top:.25rem}
-.go{
-  flex:0 0 auto;align-self:flex-end;margin-top:auto;
-  font-size:.85rem;font-weight:700;color:var(--ink-2);
-  border:1.5px solid var(--line);border-radius:99px;padding:.55rem 1.1rem;transition:all .3s;
-}
-.pcard:hover .go{background:var(--ink);border-color:var(--ink);color:#fff}
 .pgrid-more{text-align:center;margin-top:3.6rem}
 
 /* ============ BEFORE / AFTER ============ */
