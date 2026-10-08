@@ -274,8 +274,9 @@ button{background:none;border:none;color:inherit;font:inherit;cursor:pointer}
   border:1px solid rgba(255,255,255,.16);border-radius:99px;padding:.55rem 1rem;
 }
 .hc-ctx{
-  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:5;
-  text-align:center;pointer-events:none;max-width:62%;
+  position:absolute;inset:0;z-index:5;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;pointer-events:none;padding:0 10%;
 }
 .hc-ctx::before{
   content:"";display:block;width:2.6rem;height:3px;border-radius:99px;
@@ -1193,7 +1194,9 @@ body.inner .burger span{background:var(--ink)}
   .hero-carousel{height:min(52vh,440px)}
   .hero-actions{justify-content:flex-start}
   .hero-chip{display:none}
-  .hc-ctx{max-width:82%}
+  .hc-ctx{padding:0 8%}
+  .hc-ctx b{font-size:clamp(1.5rem,7vw,2.1rem)}
+  .hc-ctx::before{margin-bottom:.8rem}
   .sec-head{grid-template-columns:1fr}
   .sec-sub{text-align:left}
   .svgrid,.pgrid{grid-template-columns:1fr}
@@ -1237,6 +1240,10 @@ body.inner .burger span{background:var(--ink)}
   *,*::before,*::after{animation:none!important;transition:none!important}
   .reveal{opacity:1;transform:none}
 }
+
+
+
+
 
 
 
