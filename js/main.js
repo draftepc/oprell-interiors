@@ -37,7 +37,7 @@ const setCtx = i => {
   chipA.innerHTML = `<b>${c.b}</b><span>${c.s}</span>`;
   chipB.innerHTML = `<b>${c.y}</b><span>${c.t}</span>`;
   if (chipM) chipM.innerHTML = `<b>${c.b}</b><span>${c.s} →</span>`;
-  if (hcCtx) hcCtx.innerHTML = `<b>${c.tag}</b><span>${c.b} — ${c.s}</span>`;
+  if (hcCtx) hcCtx.innerHTML = `<b>${c.tag}</b>`;
   if (ANIM) gsap.fromTo([hcCtx, chipA, chipB].filter(Boolean), { opacity: 0, y: 10 },
     { opacity: 1, y: 0, duration: .55, ease: 'power3.out', stagger: .08, delay: .15 });
 };
