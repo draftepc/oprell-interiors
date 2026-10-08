@@ -1197,6 +1197,12 @@ body.inner .burger span{background:var(--ink)}
   .hc-ctx{padding:0 8%}
   .hc-ctx b{font-size:clamp(1.5rem,7vw,2.1rem)}
   .hc-ctx::before{margin-bottom:.8rem}
+  .hc-arrow{top:auto;bottom:1.3rem;transform:none;width:2.7rem;height:2.7rem;font-size:1rem}
+  .hc-arrow::before{display:none}
+  .hc-prev{left:.9rem}
+  .hc-next{right:.9rem}
+  .hc-prev:hover{transform:translateX(-3px)}
+  .hc-next:hover{transform:translateX(3px)}
   .sec-head{grid-template-columns:1fr}
   .sec-sub{text-align:left}
   .svgrid,.pgrid{grid-template-columns:1fr}
