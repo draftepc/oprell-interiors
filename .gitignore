@@ -7,3 +7,6 @@ OneDrive_*.zip
 OneDrive_*/
 __pycache__/
 image_manifest.json
+
+_*
+_shots/

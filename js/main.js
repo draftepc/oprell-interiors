@@ -26,26 +26,31 @@ let swIdx = -1, swDir = 0;         // incoming slide index + direction (+1 next 
 
 /* per-slide context for the floating chips */
 const HERO_CTX = [
-  { b: 'Hattan Villa',    s: 'Arabian Ranches — Dubai', y: 'Residential', t: 'Renovation',    href: 'project-hattan-villa/' },
-  { b: 'Landscape & Pools', s: 'Outdoor works — UAE',   y: 'Landscape',   t: 'Design + build', href: 'project-landscape/' },
-  { b: 'CFO Office',      s: 'Jafza LOB 17 — Dubai',    y: 'Commercial',  t: 'Fit-out',        href: 'project-cfo-office/' },
+  { b: 'Hattan Villa',    s: 'Arabian Ranches — Dubai', y: 'Residential', t: 'Renovation',    href: 'project-hattan-villa/', tag: 'The art of coming home.' },
+  { b: 'Landscape & Pools', s: 'Outdoor works — UAE',   y: 'Landscape',   t: 'Design + build', href: 'project-landscape/',   tag: 'Life, moved outdoors.' },
+  { b: 'CFO Office',      s: 'Jafza LOB 17 — Dubai',    y: 'Commercial',  t: 'Fit-out',        href: 'project-cfo-office/',  tag: 'Where business takes shape.' },
 ];
-const chipA = $('#chip-a'), chipB = $('#chip-b'), chipM = $('#chip-m');
+const chipA = $('#chip-a'), chipB = $('#chip-b'), chipM = $('#chip-m'), hcCtx = $('#hc-ctx');
 const setCtx = i => {
   const c = HERO_CTX[i % HERO_CTX.length];
   [chipA, chipB, chipM].forEach(ch => { if (ch) ch.href = c.href; });
   chipA.innerHTML = `<b>${c.b}</b><span>${c.s}</span>`;
   chipB.innerHTML = `<b>${c.y}</b><span>${c.t}</span>`;
   if (chipM) chipM.innerHTML = `<b>${c.b}</b><span>${c.s} →</span>`;
-  if (ANIM) gsap.fromTo([chipA, chipB], { opacity: 0, y: 10 },
+  if (hcCtx) hcCtx.innerHTML = `<b>${c.tag}</b><span>${c.b} — ${c.s}</span>`;
+  if (ANIM) gsap.fromTo([hcCtx, chipA, chipB].filter(Boolean), { opacity: 0, y: 10 },
     { opacity: 1, y: 0, duration: .55, ease: 'power3.out', stagger: .08, delay: .15 });
 };
 
+const hcCount = $('#hc-count');
+const pad2 = n => String(n).padStart(2, '0');
+if (hcCount) hcCount.lastElementChild.textContent = pad2(HN);
 const updateUI = () => {
   [...dotsBox.children].forEach((d, i) => {
     d.classList.toggle('on', i === hCur);
     d.toggleAttribute('aria-current', i === hCur);
   });
+  if (hcCount) hcCount.firstElementChild.textContent = pad2(hCur + 1);
   setCtx(hCur);
 };
 
@@ -293,22 +298,13 @@ if (FX) {
       const r = b.getBoundingClientRect();
       return { x: r.left - wr.left + r.width / 2, y: r.top - wr.top + r.height / 2, r: r.width / 2 + 5 };
     });
-    // bowed segments between badges — alternates direction so the line snakes
-    let d = '';
-    for (let i = 1; i < pts.length; i++) {
-      const a = pts[i - 1], b = pts[i];
-      const dx = b.x - a.x, dy = b.y - a.y, dist = Math.hypot(dx, dy) || 1;
-      const ux = dx / dist, uy = dy / dist;
-      const x0 = a.x + ux * a.r, y0 = a.y + uy * a.r;
-      const x1 = b.x - ux * b.r, y1 = b.y - uy * b.r;
-      const mx = (x0 + x1) / 2, my = (y0 + y1) / 2;
-      const bow = (i % 2 ? 1 : -1) * Math.min(38, dist * 0.22);
-      d += ` M ${x0.toFixed(1)} ${y0.toFixed(1)} Q ${(mx - uy * bow).toFixed(1)} ${(my + ux * bow).toFixed(1)}, ${x1.toFixed(1)} ${y1.toFixed(1)}`;
-    }
+    // straight rail through the badge centers — nodes are opaque circles on
+    // the hairline rule, so the connector stays on that axis, not snake
+    const d = ' M ' + pts.map(p => `${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' L ');
     line.setAttribute('d', d); fill.setAttribute('d', d);
     $('#pc-svg').setAttribute('viewBox', `0 0 ${wrap.offsetWidth} ${wrap.offsetHeight}`);
     L = line.getTotalLength();
-    fill.style.strokeDasharray = `${L * 0.26} ${L}`;
+    fill.style.strokeDasharray = `${L * 0.13} ${L}`;
     fill.style.strokeDashoffset = 0;
     // badge positions as fractions along the path
     fracs = pts.map(p => {
@@ -336,7 +332,7 @@ if (FX) {
         if (narrow.matches) return;   // draw() already lit every step
         fill.style.strokeDashoffset = -(pulse.v * L);
         cells.forEach((c, i) => {
-          c.classList.toggle('step-on', pulse.v + 0.26 >= fracs[i]);
+          c.classList.toggle('step-on', pulse.v + 0.13 >= fracs[i]);
         });
       }
     });
