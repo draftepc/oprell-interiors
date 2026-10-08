@@ -121,8 +121,8 @@ button{background:none;border:none;color:inherit;font:inherit;cursor:pointer}
   padding:.65rem 1.3rem;background:#fff;transition:all .3s;
 }
 .mnav-close:hover{background:var(--yellow);border-color:var(--yellow)}
-.mnav a{font-size:clamp(2.2rem,9vw,3.4rem);font-weight:700;letter-spacing:-.03em;padding:.6rem 0;border-bottom:1px solid var(--line)}
-.mnav-foot{display:flex;gap:1.6rem;margin-top:3rem;font-size:.85rem}
+.mnav > a{font-size:clamp(2.2rem,9vw,3.4rem);font-weight:700;letter-spacing:-.03em;padding:.6rem 0;border-bottom:1px solid var(--line)}
+.mnav-foot{display:flex;flex-wrap:wrap;gap:.6rem 1.6rem;margin-top:3rem;font-size:.85rem}
 .mnav-foot a{color:var(--ink-2);font-weight:600;transition:color .3s}
 .mnav-foot a:hover{color:var(--ink)}
 
@@ -286,11 +286,7 @@ button{background:none;border:none;color:inherit;font:inherit;cursor:pointer}
   font-size:clamp(2rem,3.6vw,3.1rem);line-height:1.05;letter-spacing:-.01em;color:#fff;
   text-shadow:0 4px 30px rgba(15,15,13,.5);
 }
-.hc-ctx span{
-  display:block;margin-top:.85rem;font-size:.78rem;font-weight:600;
-  letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.82);
-  text-shadow:0 2px 14px rgba(15,15,13,.6);
-}
+.hc-ctx span{display:none}
 .hc-count b{font-family:'Fraunces',serif;font-weight:600;font-size:1.05rem;color:var(--yellow);letter-spacing:.02em}
 .hc-count i{font-style:normal;font-size:.72rem;color:rgba(255,255,255,.5)}
 .hc-count span{font-size:.72rem;font-weight:700;color:rgba(255,255,255,.75);letter-spacing:.08em}
@@ -1241,6 +1237,8 @@ body.inner .burger span{background:var(--ink)}
   *,*::before,*::after{animation:none!important;transition:none!important}
   .reveal{opacity:1;transform:none}
 }
+
+
 
 
 
