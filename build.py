@@ -19,7 +19,14 @@ import re
 import glob
 
 SITE = 'https://oprell.ae'
-V = 'v=26'                      # bump to bust caches on deploy
+import hashlib
+_h = hashlib.md5()
+for _f in ('css/style.css', 'js/common.js', 'js/page.js', 'js/home.js'):
+    try:
+        _h.update(open(_f, 'rb').read())
+    except OSError:
+        pass
+V = 'v=' + _h.hexdigest()[:10]  # auto-bust caches whenever css/js changes
 EMAIL = 'contact@oprell.ae'
 PHONE_DISP = '+971 52 520 1792'
 PHONE_TEL = 'tel:+971525201792'
@@ -31,13 +38,13 @@ ADDR = 'Grosvenor Business Tower<br>Barsha Heights, Dubai, UAE'
 def gen_webp():
     """Create assets/proj/{name}.webp (<=1600w) and {name}-800.webp variants."""
     try:
-        from PIL import Image
+        from PIL import Image, ImageOps
     except ImportError:
         print('PIL not installed - skipping webp generation')
         return
-    for path in sorted(glob.glob('assets/proj/*.jpg')):
+    for path in sorted(glob.glob('assets/proj/**/*.jp*g', recursive=True)):
         stem = path[:-4]
-        im = Image.open(path)
+        im = ImageOps.exif_transpose(Image.open(path))
         w, h = im.size
         mw = min(w, 1600)
         out = stem + '.webp'
@@ -110,7 +117,7 @@ def head(title, desc, root, path, og_img, extra=''):
 <link rel="icon" type="image/png" href="{root}assets/mark.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&display=swap" rel="stylesheet">
 <meta property="og:site_name" content="OPRELL Interiors &amp; Fit-Out">
 <meta property="og:title" content="{title}">
 <meta property="og:description" content="{desc}">
@@ -119,7 +126,7 @@ def head(title, desc, root, path, og_img, extra=''):
 <meta property="og:image" content="{SITE}/{og_img}">
 <meta name="twitter:card" content="summary_large_image">
 {extra}<link rel="stylesheet" href="{root}css/style.css?{V}">
-<noscript><style>.loader{{display:none!important}}.cursor{{display:none!important}}.reveal{{opacity:1!important;transform:none!important}}</style></noscript>
+<noscript><style>.loader{{display:none!important}}.reveal{{opacity:1!important;transform:none!important}}</style></noscript>
 </head>
 """
 
@@ -141,14 +148,12 @@ def chrome_top(root, home, inner):
     <a href="{root}about/">About</a>
     <a href="{root}services/">Services</a>
     <a href="{root}projects/">Projects</a>
-    <a href="{root}#transform">Before / After</a>
     <a href="{root}contact/">Contact</a>
   </nav>"""
     mnav_links = f"""<a href="{home}">Home</a>
   <a href="{root}about/">About</a>
   <a href="{root}services/">Services</a>
   <a href="{root}projects/">Projects</a>
-  <a href="{root}#transform">Before / After</a>
   <a href="{root}contact/">Contact</a>"""
     return f"""<body{' class="inner"' if inner else ''}>
 
@@ -159,7 +164,6 @@ def chrome_top(root, home, inner):
   <span class="loader-word">OPRELL</span>
 </div>
 
-<div class="cursor" id="cursor" aria-hidden="true"><div class="cur-ring"></div><div class="cur-dot"></div><span class="cur-txt"></span></div>
 <div class="rail" aria-hidden="true"><i></i></div>
 
 <header class="head" id="head">
@@ -177,29 +181,45 @@ def chrome_top(root, home, inner):
 """
 
 
-def chrome_bottom(root, home):
-    return f"""
+def chrome_bottom(root, home, cta=True):
+    band = f"""
+<section class="cta-band reveal" aria-label="Start a project">
+  <div class="cta-band-in">
+    <span class="cta-ghost" aria-hidden="true">OPRELL</span>
+    <div class="cta-band-l">
+      <span class="pill pill-d"><i></i>Start a project</span>
+      <h2 class="cta-band-t">Have a space in mind?<br><em>Let&rsquo;s build it.</em></h2>
+      <a class="cta-band-btn" href="{root}contact/" data-mag>Get in touch →</a>
+    </div>
+    <div class="cta-band-r">
+      <a href="mailto:contact@oprell.ae">contact@oprell.ae</a>
+      <a href="tel:+971525201792">+971 52 520 1792</a>
+      <span>Grosvenor Business Tower<br>Barsha Heights, Dubai</span>
+    </div>
+  </div>
+</section>""" if cta else ''
+    return band + f"""
 <footer class="foot">
   <div class="foot-brand">
-    <a class="logo" href="{home}" aria-label="OPRELL Interiors"><img class="foot-logo" src="{root}assets/logo.png" alt="OPRELL Interiors"></a>
+    <a class="logo" href="{home}" aria-label="OPRELL Interiors"><img class="foot-logo" src="{root}assets/logo-white.png" alt="OPRELL Interiors"></a>
     <p class="foot-addr">{ADDR}</p>
-    <div class="soc">
-      <a href="{IG}" target="_blank" rel="noopener" aria-label="Instagram">{IG_SVG}Instagram</a>
-      <a href="{WA}" target="_blank" rel="noopener" aria-label="WhatsApp">{WA_SVG}WhatsApp</a>
-    </div>
   </div>
   <nav class="foot-nav" aria-label="Footer">
     <a href="{root}about/">About</a>
     <a href="{root}services/">Services</a>
     <a href="{root}projects/">Projects</a>
-    <a href="{root}#transform">Before / After</a>
     <a href="{root}contact/">Contact</a>
   </nav>
   <div class="foot-contact">
     <a href="mailto:{EMAIL}">{EMAIL}</a>
     <a href="{PHONE_TEL}">{PHONE_DISP}</a>
+    <div class="soc">
+      <a href="{IG}" target="_blank" rel="noopener" aria-label="Instagram">{IG_SVG}Instagram</a>
+      <a href="{WA}" target="_blank" rel="noopener" aria-label="WhatsApp">{WA_SVG}WhatsApp</a>
+    </div>
   </div>
   <span class="foot-note">© 2026 OPRELL Interiors — Dubai, UAE</span>
+  <div class="foot-mark" aria-hidden="true">OPRELL</div>
 </footer>
 """
 
@@ -297,7 +317,7 @@ PROJECTS = [
          quote=('We are proud to showcase our bakery and coffee shop set-up, and we owe it all to the expertise of Oprell Interiors.',
                 "Susan's Bakery & Co."),
          images=imgs('susans')),
-    dict(slug='jlt-washroom', num='05', title='JLT Washroom',
+    dict(slug='jlt-washroom', num='05', title='JLT, Hanfinia Washroom',
          meta='Renovation — JLT, Dubai',
          sector='Renovation', location='JLT, Dubai', status='Delivered',
          desc='A complete washroom renovation in JLT — stripped to the shell, replumbed and refitted with marble finishes, brass fittings and custom joinery, shown here from the original state to the design proposal and the finished room.',
@@ -337,52 +357,161 @@ PROJECTS = [
 ]
 
 
+BLANK_GIF = ('data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAAB'
+             'AAEAAAICTAEAOw==')
+
+ARROWS = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+          'stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'
+          '<path d="M19 12H5M11 6l-6 6 6 6"/></svg>')
+ARROWR = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+          'stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'
+          '<path d="M5 12h14M13 6l6 6-6 6"/></svg>')
+EXPAND = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+          'stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'
+          '<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>')
+
+
+def deck_markup(items, alt):
+    """items: list of (thumb, full, sec) asset-proj-relative paths -> deck slider."""
+    ni = len(items)
+    lis = []
+    for j, (th, fu, sec) in enumerate(items):
+        src = (f'src="../assets/proj/{th}"' if j < 6 else
+               f'src="{BLANK_GIF}" data-src="../assets/proj/{th}"')
+        tag = (f'<span class="deck-tag">{html.escape(sec)}</span>'
+               if sec else '')
+        lis.append(
+            f'      <li class="deck-slide" data-i="{j}" '
+            f'data-sec="{html.escape(sec)}"><img {src} '
+            f'data-full="../assets/proj/{fu}" alt="{alt}" '
+            f'loading="lazy" decoding="async">{tag}'
+            f'<div class="deck-cap"><span class="deck-n">'
+            f'{j + 1:02d} / {ni:02d}</span>'
+            f'<button class="deck-open" type="button" '
+            f'aria-label="Open fullscreen">{EXPAND}</button></div></li>')
+    return ('  <div class="pd-deck" data-cursor="drag">\n'
+            '    <div class="deck-bg" aria-hidden="true"></div>\n'
+            '    <ul class="deck-track">\n' + '\n'.join(lis) + '\n'
+            '    </ul>\n'
+            '    <nav class="deck-nav" aria-label="Gallery navigation">'
+            f'<button class="deck-btn deck-prev" aria-label="Previous photo">'
+            f'{ARROWS}</button>'
+            f'<button class="deck-btn deck-next" aria-label="Next photo">'
+            f'{ARROWR}</button></nav>\n'
+            '    <div class="deck-prog" aria-hidden="true"><i></i></div>\n'
+            '  </div>\n')
+
+
 def project_main(p, nxt):
     """<main> + lightbox for a project detail page (paths are ../-relative)."""
     t = html.escape(p['title'])
+    sections = p.get('sections', [])
     n = len(p['images'])
-    thumbs = '\n'.join(
-        '        <button class="pds-thumb{0}" data-i="{1}" aria-label="Show image {2} of {3}">'
-        '<img src="../assets/proj/{4}" alt="{5} — photo {2}" loading="lazy" decoding="async"></button>'
-        .format(' on' if j == 0 else '', j, j + 1, n, src, t)
-        for j, src in enumerate(p['images']))
+    n_sec = sum(len(s['images']) for s in sections)
+    if p['images']:
+        hero_img = f"../assets/proj/{p['images'][0]}"
+    elif p.get('cover'):
+        hero_img = f"../assets/proj/{p['cover']}.webp"
+    else:
+        hero_img = '../assets/proj/villa-03.jpg'
+
+    if nxt['images']:
+        nxt_img = nxt['images'][0]
+    elif nxt.get('cover'):
+        nxt_img = f"{nxt['cover']}.webp"
+    elif nxt.get('sections') and nxt['sections'][0]['images']:
+        nxt_img = f"{nxt['sections'][0]['images'][0]}-800.webp"
+    else:
+        nxt_img = 'villa-03.jpg'
+    th = re.sub(r'\.\w+$', '-800.webp', nxt_img)
+    if th != nxt_img and os.path.exists(f'assets/proj/{th}'):
+        nxt_img = th
+
+    # one unified deck: main highlights first, then every source section
+    slides = [(src, src, '') for src in p['images']]
+    for s in sections:
+        slides += [(f'{stem}-800.webp', f'{stem}.webp', s['name'])
+                   for stem in s['images']]
+
+    chips = ''
+    if len(sections) > 1:
+        pos = n
+        for s in sections:
+            sname = html.escape(s['name'])
+            chips += (f'<button class="sec-chip" type="button" data-i="{pos}" '
+                      f'data-sec="{sname}">{sname} <i>{len(s["images"])}</i></button>')
+            pos += len(s['images'])
+        chips = f'  <nav class="pd-secs" aria-label="Gallery sections">{chips}</nav>\n'
+
+    # videos + unrenderable files stay grouped per source section
+    files_html = ''
+    for s in sections:
+        cell = ''
+        if s['videos']:
+            cell += '  <div class="pd-vids">\n    ' + '\n    '.join(
+                f'<video class="gal-vid" src="../assets/proj/{html.escape(rel)}" '
+                f'controls preload="metadata" '
+                f'aria-label="{html.escape(disp)}"></video>'
+                for disp, rel in s['videos']) + '\n  </div>\n'
+        links = s['docs'] + s['raw']
+        if links:
+            cell += '  <ul class="pd-docs">\n    ' + '\n    '.join(
+                f'<li><a href="../assets/proj/{html.escape(rel)}" '
+                f'download>{html.escape(disp)}</a></li>'
+                for disp, rel in links) + '\n  </ul>\n'
+        if cell:
+            files_html += (f'  <div class="pd-filegrp reveal">'
+                           f'<h4 class="pd-filesec">{html.escape(s["name"])}</h4>\n'
+                           f'{cell}  </div>\n')
+    if files_html:
+        files_html = ('  <h3 class="scope-title reveal">Additional media</h3>\n'
+                      + files_html)
+
+    if slides:
+        gallery = (f'  <h2 class="scope-title reveal">Gallery'
+                   f' <span class="gal-n">— {len(slides)} photos</span></h2>\n'
+                   f'{chips}'
+                   f'{deck_markup(slides, f"{t} — photo")}\n'
+                   f'{files_html}')
+    elif sections:
+        gallery = files_html
+    else:
+        gallery = ('  <p class="pd-desc reveal" style="margin-top:3.4rem">'
+                   'Photography for this project is being prepared '
+                   'and will be added soon.</p>\n')
+
     quote = ''
     if p.get('quote'):
         q, who = p['quote']
         quote = ('  <blockquote class="pd-quote reveal">“' + html.escape(q) +
                  '”<cite>— ' + html.escape(who) + '</cite></blockquote>\n')
     return f"""<main id="main">
-<section class="page-hero" style="--ph:url('../assets/proj/{p['images'][0]}')">
+<section class="page-hero page-hero-dark">
+  <span class="ph-ghost" aria-hidden="true">OPRELL</span>
   <div class="hero-line reveal">
     <nav class="crumbs" aria-label="Breadcrumb"><ol>
       <li><a href="../">Home</a></li>
       <li><a href="../projects/">Projects</a></li>
       <li aria-current="page"><span>{t}</span></li>
     </ol></nav>
-    <span class="pill"><i></i>N°{p['num']}</span>
+    <span class="pill"><i></i>{p['sector']}</span>
   </div>
   <h1 class="reveal d1">{t}<em>.</em></h1>
   <p class="page-sub reveal d2">{html.escape(p['meta'])}</p>
 </section>
 
 <section class="pd-body">
-  <p class="pd-desc reveal">{html.escape(p['desc'])}</p>
-  <div class="pd-facts reveal">Sector — {html.escape(p['sector'])}<br>Location — {html.escape(p['location'])}<br>Status — {html.escape(p['status'])}</div>
-{quote}  <h2 class="scope-title reveal">Project gallery</h2>
-  <div class="pds-wrap">
-    <div class="pds reveal">
-      <figure class="pds-stage" id="pds-stage" data-cursor="drag">
-        <img id="pds-img" src="../assets/proj/{p['images'][0]}" alt="{t} — featured image">
-        <button class="pds-arrow pds-prev" id="pds-prev" aria-label="Previous image">←</button>
-        <button class="pds-arrow pds-next" id="pds-next" aria-label="Next image">→</button>
-        <span class="pds-count" id="pds-count" aria-live="polite">01 / {n:02d}</span>
-      </figure>
-      <div class="pds-track" role="group" aria-label="Gallery thumbnails">
-{thumbs}
-      </div>
-    </div>
+  <div class="pd-intro">
+    <p class="pd-desc reveal">{html.escape(p['desc'])}</p>
+    <table class="pd-facts reveal"><tbody>
+      <tr><th>Sector</th><td>{html.escape(p['sector'])}</td></tr>
+      <tr><th>Location</th><td>{html.escape(p['location'])}</td></tr>
+      <tr><th>Status</th><td>{html.escape(p['status'])}</td></tr>
+    </tbody></table>
   </div>
-  <a class="btn-y pd-next" href="../project-{nxt['slug']}/" data-mag>Next project: {html.escape(nxt['title'])} →</a>
+{quote}{gallery}  <a class="pd-next" href="../project-{nxt['slug']}/" data-cursor="view">
+    <span class="pd-next-t"><span>Next project</span><b>{html.escape(nxt['title'])} →</b></span>
+    <img class="pd-next-img" src="../assets/proj/{nxt_img}" alt="" loading="lazy" decoding="async" data-nopicture></a>
 </section>
 </main>
 
@@ -398,6 +527,17 @@ def project_main(p, nxt):
 
 GENERATED = '<!-- GENERATED by build.py — edit content/*.html or build.py, then re-run -->\n'
 
+# extra projects + gallery sections imported from the Desktop archive
+try:
+    from projects_new import SECTIONS, EXTRA_PROJECTS
+except ImportError:
+    SECTIONS, EXTRA_PROJECTS = {}, []
+for _p in PROJECTS:
+    _extra = SECTIONS.get(_p['slug'])
+    if _extra:
+        _p.setdefault('sections', []).extend(_extra)
+PROJECTS.extend(EXTRA_PROJECTS)
+
 
 def build():
     gen_webp()
@@ -411,7 +551,7 @@ def build():
                                 pg.get('extra', ''))
                + chrome_top(root, home, pg['inner']) + '\n'
                + body
-               + chrome_bottom(root, home)
+               + chrome_bottom(root, home, cta=pg['frag'] != 'contact')
                + scripts(root, pg['js']))
         out = enhance_imgs(out)
         if os.path.dirname(pg['file']):
@@ -422,10 +562,13 @@ def build():
     for i, p in enumerate(PROJECTS):
         nxt = PROJECTS[(i + 1) % len(PROJECTS)]
         t = html.escape(p['title'])
+        og = (f"assets/proj/{p['images'][0]}" if p['images']
+              else f"assets/proj/{p['cover']}.webp" if p.get('cover')
+              else 'assets/proj/villa-03.jpg')
         out = (GENERATED
                + head(f'{t} — OPRELL Interiors &amp; Fit-Out',
                       html.escape(p['meta']) + ' — designed and built in-house by OPRELL Interiors, Dubai.',
-                      '../', f"project-{p['slug']}/", f"assets/proj/{p['images'][0]}")
+                      '../', f"project-{p['slug']}/", og)
                + chrome_top('../', '../', True) + '\n'
                + project_main(p, nxt)
                + chrome_bottom('../', '../')

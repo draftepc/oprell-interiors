@@ -29,26 +29,6 @@ setTimeout(() => {
   try { sessionStorage.setItem('op-seen', '1'); } catch (e) {}
 }, LOADER_MS);
 
-/* ---------------- custom cursor ---------------- */
-const cur = $('#cursor');
-if (FX && cur) {
-  document.body.classList.add('cur-on');
-  const cx = gsap.quickTo(cur, 'x', { duration: 0.12, ease: 'power3' });
-  const cy = gsap.quickTo(cur, 'y', { duration: 0.12, ease: 'power3' });
-  const txt = $('.cur-txt');
-  addEventListener('mousemove', e => { cx(e.clientX); cy(e.clientY); });
-  document.addEventListener('mouseover', e => {
-    const spot = e.target.closest('.ba-spot');
-    const view = e.target.closest('[data-cursor="view"]');
-    const drag = e.target.closest('[data-cursor="drag"],[data-cursor="swipe"]');
-    const hov = spot || e.target.closest('a,button,[data-mag],.svcard,.pcell');
-    cur.classList.toggle('view', !!view);
-    cur.classList.toggle('drag', !!drag && !spot);
-    cur.classList.toggle('hov', !!hov && !view && !drag);
-    txt.textContent = view ? 'VIEW' : drag ? drag.dataset.cursor.toUpperCase() : '';
-  });
-}
-
 /* ---------------- magnetic ---------------- */
 if (FX) $$('[data-mag]').forEach(el => {
   el.addEventListener('mousemove', e => {
