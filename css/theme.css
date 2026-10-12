@@ -531,7 +531,7 @@ button {
   text-transform: uppercase;
   letter-spacing: 0.14em;
   font-weight: 700;
-  color: rgba(0, 0, 0, 0.95);
+  color: rgba(0, 0, 0, 0.62);
   padding: 10px 14px;
   border-radius: 999px;
   transition: color 160ms ease, background-color 160ms ease, transform 160ms ease;
@@ -1747,7 +1747,7 @@ video.hero-slide.is-active {
 }
 
 .featured-projects-slider .project-card {
-  flex: 0 0 calc(33.333% - 12px);
+  flex: 0 0 calc(25% - 12px);
   min-width: 0;
 }
 
@@ -1798,7 +1798,7 @@ video.hero-slide.is-active {
 
 @media (max-width: 1024px) {
   .featured-projects-slider .project-card {
-    flex: 0 0 calc(33.333% - 12px);
+    flex: 0 0 calc(50% - 12px);
   }
 }
 
