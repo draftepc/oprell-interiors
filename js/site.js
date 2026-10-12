@@ -465,8 +465,8 @@
     const contentEl = qs(".hero-content", hero);
 
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    let idx = 0;
-    let contentIdx = 0;
+    let idx = 1;
+    let contentIdx = 1;
     let timer = null;
     const slideDurations = [10000, 10000];
     const contentDuration = 5000;
@@ -1384,6 +1384,24 @@
     }, { passive: true });
   };
 
+  const initNavActive = () => {
+    let path = location.pathname.replace(/\/index\.html$/, "").replace(/\/+$/, "");
+    if (path === "") path = "/";
+    qsa(".nav-link[href], .mobile-nav-link[href]").forEach(a => {
+      let href = (a.getAttribute("href") || "").replace(/^\.\.\//, "").replace(/^\.\//, "");
+      href = "/" + href.replace(/\/+$/, "");
+      if (href === "/") href = "/";
+      const isHome = ["./", "../", "#top", "index.html"].includes(a.getAttribute("href")) || /index\.html$/.test(a.getAttribute("href") || "");
+      if ((isHome && path === "/") || (!isHome && href === path)) {
+        a.classList.add("is-active");
+        a.setAttribute("aria-current", "page");
+      }
+    });
+    if (path === "/services") {
+      qsa(".nav-dropdown-toggle").forEach(b => b.classList.add("is-active"));
+    }
+  };
+
   const initApp = () => {
     initYear();
     initHeader();
@@ -1400,6 +1418,7 @@
     initMobileNavToggle();
     initProjectSearch();
     initRowLightbox();
+    initNavActive();
 
   };
 
