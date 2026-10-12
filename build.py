@@ -689,6 +689,17 @@ FEATURED = ('susans-baking', 'cfo-office', 'hattan-villa',
             'dubai-hills', 'villa-798-mbr-city-district-one',
             'maeen-villa-165-the-lakes', 'landscape', 'meadows-2')
 
+FEATURED_BLURBS = {
+    'susans-baking': 'Counters and display units for Dubai’s artisan bakery.',
+    'cfo-office': 'Executive office for DP World, built entirely in-house.',
+    'hattan-villa': 'Full villa renovation in Arabian Ranches, approvals included.',
+    'dubai-hills': 'A family villa in Dubai Hills, documented to delivery.',
+    'villa-798-mbr-city-district-one': 'A complete interior transformation in District One.',
+    'maeen-villa-165-the-lakes': 'A full villa renovation at The Lakes community.',
+    'landscape': 'Gardens, hardscape and pools built by our own crews.',
+    'meadows-2': 'A Meadows villa renovation, delivered in stages.',
+}
+
 
 MAP_GEO = [
     ('arabian ranches 2', 55.250, 25.030),
@@ -774,17 +785,14 @@ def featured_cards():
         img = cover_src(p)
         media = (f'<img src="{img}" alt="{t}" loading="lazy">' if img
                  else '<span class="project-media-empty">OPRELL</span>')
-        status = STATUS_MAP.get(p['status'].lower(), 'completed')
         cards.append(f"""          <article class="project-card">
             <a href="projects/#project-{p['slug']}" class="project-link">
               <div class="project-media">{media}
-                <span class="project-status project-status-{status}">{html.escape(p['status'])}</span>
                 <span class="project-card-n">{i:02d}</span>
               </div>
               <div class="project-body">
-                <div class="kicker">{html.escape(p['sector'])} · {html.escape(p['location'])}</div>
                 <h3 class="h3">{t}</h3>
-                <p class="muted">{html.escape(p['desc'][:110])}…</p>
+                <p class="muted">{html.escape(FEATURED_BLURBS.get(slug, p['desc']))}</p>
                 <span class="project-card-cta">View project <i>→</i></span>
               </div>
             </a>
