@@ -21,7 +21,7 @@ import glob
 SITE = 'https://oprell.ae'
 import hashlib
 _h = hashlib.md5()
-for _f in ('css/style.css', 'js/common.js', 'js/page.js', 'js/home.js'):
+for _f in ('css/theme.css', 'css/components.css', 'js/site.js', 'js/page.js'):
     try:
         _h.update(open(_f, 'rb').read())
     except OSError:
@@ -117,7 +117,8 @@ def head(title, desc, root, path, og_img, extra=''):
 <link rel="icon" type="image/png" href="{root}assets/mark.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Red+Hat+Display:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <meta property="og:site_name" content="OPRELL Interiors &amp; Fit-Out">
 <meta property="og:title" content="{title}">
 <meta property="og:description" content="{desc}">
@@ -125,120 +126,201 @@ def head(title, desc, root, path, og_img, extra=''):
 <meta property="og:url" content="{SITE}/{path}">
 <meta property="og:image" content="{SITE}/{og_img}">
 <meta name="twitter:card" content="summary_large_image">
-{extra}<link rel="stylesheet" href="{root}css/style.css?{V}">
-<noscript><style>.loader{{display:none!important}}.reveal{{opacity:1!important;transform:none!important}}</style></noscript>
+{extra}<link rel="stylesheet" href="{root}css/theme.css?{V}">
+<link rel="stylesheet" href="{root}css/components.css?{V}">
+<noscript><style>.page-loader{{display:none!important}}</style></noscript>
 </head>
 """
 
 
-IG_SVG = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">'
-          '<rect x="3" y="3" width="18" height="18" rx="5.5"/><circle cx="12" cy="12" r="4"/>'
-          '<circle cx="17.3" cy="6.7" r="1.1" fill="currentColor" stroke="none"/></svg>')
-WA_SVG = ('<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3'
-          'A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 '
-          '20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3'
-          '-2.9c-.3-.4.2-.4.5-.9l.4-.5c.1-.2.1-.4 0-.5l-.8-1.9c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3'
-          '-.9.9-1.1 2.2-.2 3.9a11.6 11.6 0 0 0 4.5 4.3c1.7.8 2.4.9 3.2.7.5-.1 1.5-.6 1.7-1.2.2-.6'
-          '.2-1.1.1-1.2l-.7-.3z"/></svg>')
+ARROW_R = ('<svg class="nav-link-cta-arrow icon icon-18" viewBox="0 0 24 24" aria-hidden="true">'
+           '<path d="M13.2 5.2a1 1 0 0 1 1.4 0l6.2 6.2a1 1 0 0 1 0 1.4l-6.2 6.2a1 1 0 1 1-1.4-1.4'
+           'l4.5-4.5H4a1 1 0 0 1 0-2h13.7l-4.5-4.5a1 1 0 0 1 0-1.4Z"/></svg>')
+ARROW_INLINE = ('<svg class="icon icon-18" viewBox="0 0 24 24" aria-hidden="true">'
+                '<path d="M13.2 5.2a1 1 0 0 1 1.4 0l6.2 6.2a1 1 0 0 1 0 1.4l-6.2 6.2a1 1 0 1 1-1.4-1.4'
+                'l4.5-4.5H4a1 1 0 0 1 0-2h13.7l-4.5-4.5a1 1 0 0 1 0-1.4Z"/></svg>')
+BURGER_SVG = ('<svg class="icon icon-22" viewBox="0 0 24 24" aria-hidden="true">'
+              '<path d="M4 7a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Zm0 5a1 1 0 0 1 1-1h14'
+              'a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Zm1 4a1 1 0 1 0 0 2h14a1 1 0 1 0 0-2H5Z"/></svg>')
+CLOSE_SVG = ('<svg class="icon icon-22" viewBox="0 0 24 24" aria-hidden="true">'
+             '<path d="M6.3 5a1 1 0 0 1 1.4 0L12 9.3 16.3 5a1 1 0 1 1 1.4 1.4L13.4 10.7 17.7 15'
+             'a1 1 0 1 1-1.4 1.4L12 12.1l-4.3 4.3A1 1 0 0 1 6.3 15l4.3-4.3L6.3 6.4a1 1 0 0 1 0-1.4Z"/></svg>')
+CHEV_DN = ('<svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+           'stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>')
+CHEV_UP = ('<svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+           'stroke-width="2" aria-hidden="true"><path d="M18 15l-6-6-6 6"/></svg>')
+
+NAV_ITEMS = [('Home', '{home}'), ('About us', '{root}about/'),
+             ('Projects', '{root}projects/')]
+SERVICES_DD = [('Interior Design', 'interior-design'), ('Fit-Out & Joinery', 'fit-out-joinery'),
+               ('Design + Build', 'design-build'), ('Villa Renovation', 'villa-renovation'),
+               ('Landscape & Pools', 'landscape-pools'), ('Project Management', 'project-management')]
 
 
 def chrome_top(root, home, inner):
-    nav = f"""<nav class="nav" aria-label="Primary">
-    <a href="{home}">Home</a>
-    <a href="{root}about/">About</a>
-    <a href="{root}services/">Services</a>
-    <a href="{root}projects/">Projects</a>
-    <a href="{root}contact/">Contact</a>
-  </nav>"""
-    mnav_links = f"""<a href="{home}">Home</a>
-  <a href="{root}about/">About</a>
-  <a href="{root}services/">Services</a>
-  <a href="{root}projects/">Projects</a>
-  <a href="{root}contact/">Contact</a>"""
+    nav = '\n      '.join(
+        f'<a class="nav-link" href="{h.format(root=root, home=home)}">{t}</a>'
+        for t, h in NAV_ITEMS[:1])
+    nav2 = '\n      '.join(
+        f'<a class="nav-link" href="{h.format(root=root, home=home)}">{t}</a>'
+        for t, h in NAV_ITEMS[1:])
+    dd = '\n          '.join(
+        f'<a class="nav-dropdown-link" href="{root}services/#{a}" role="menuitem">{t}</a>'
+        for t, a in SERVICES_DD)
+    mnav = '\n      '.join(
+        f'<a class="mobile-nav-link" href="{h.format(root=root, home=home)}">{t}</a>'
+        for t, h in NAV_ITEMS[:1])
+    mnav2 = '\n      '.join(
+        f'<a class="mobile-nav-link" href="{h.format(root=root, home=home)}">{t}</a>'
+        for t, h in NAV_ITEMS[1:])
+    mdd = '\n          '.join(
+        f'<a class="mobile-nav-link" href="{root}services/#{a}">{t}</a>'
+        for t, a in SERVICES_DD)
     return f"""<body{' class="inner"' if inner else ''}>
 
-<a class="skip" href="#main">Skip to content</a>
-
-<div class="loader" id="loader" aria-hidden="true">
-  <div class="loader-mark"><i></i><i></i></div>
-  <span class="loader-word">OPRELL</span>
+<div class="page-loader" id="page-loader">
+  <div class="page-loader-content">
+    <div class="page-loader-logo"><img src="{root}assets/logo-white.png" alt="OPRELL Interiors"></div>
+    <div class="page-loader-spinner"></div>
+  </div>
+</div>
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="scroll-rail" data-variant="dark" role="slider" aria-label="Scroll"
+     aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0">
+  <div class="scroll-rail-fill" aria-hidden="true"></div>
+  <div class="scroll-rail-thumb" aria-hidden="true"></div>
 </div>
 
-<div class="rail" aria-hidden="true"><i></i></div>
-
-<header class="head" id="head">
-  <a class="logo" href="{home}" aria-label="OPRELL Interiors"><img src="{root}assets/logo.png" alt="OPRELL Interiors"></a>
-  {nav}
-  <a class="cta" href="{root}contact/" data-mag>Start a project</a>
-  <button class="burger" id="burger" aria-label="Menu" aria-expanded="false" aria-controls="mnav"><span></span><span></span></button>
+<header class="site-header is-visible">
+  <div class="container header-inner">
+    <a class="brand" href="{home}" aria-label="OPRELL Home">
+      <img class="brand-logo" src="{root}assets/logo.png" alt="OPRELL Interiors">
+    </a>
+    <nav class="nav-shell" aria-label="Primary">
+      {nav}
+      <div class="nav-dropdown">
+        <button class="nav-link nav-dropdown-toggle" type="button" aria-haspopup="true" aria-expanded="false">
+          Our Services +
+        </button>
+        <div class="nav-dropdown-menu" role="menu" aria-label="Our services">
+          {dd}
+        </div>
+      </div>
+      {nav2}
+    </nav>
+    <div class="header-actions">
+      <a class="nav-link nav-link-cta" href="{root}contact/">Contact us {ARROW_R}</a>
+      <button class="menu-button" type="button" aria-haspopup="dialog" aria-expanded="false">
+        <span class="sr-only">Open menu</span>{BURGER_SVG}
+      </button>
+    </div>
+  </div>
 </header>
 
-<div class="mnav" id="mnav" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Menu" inert>
-  <button class="mnav-close" id="mnav-close" aria-label="Close menu">Close ×</button>
-  {mnav_links}
-  <div class="mnav-foot"><a href="mailto:{EMAIL}">{EMAIL}</a><a href="{PHONE_TEL}">{PHONE_DISP}</a></div>
+<div class="menu-overlay" hidden></div>
+<div class="mobile-menu" role="dialog" aria-modal="true" aria-label="Mobile menu">
+  <div class="mobile-menu-inner">
+    <div class="mobile-menu-top">
+      <a class="brand" href="{home}" aria-label="OPRELL Home">
+        <img class="brand-logo" src="{root}assets/logo.png" alt="OPRELL Interiors">
+      </a>
+      <button class="menu-close" type="button">
+        <span class="sr-only">Close menu</span>{CLOSE_SVG}
+      </button>
+    </div>
+    <nav class="mobile-nav" aria-label="Mobile primary">
+      {mnav}
+      <button class="mobile-nav-toggle" type="button" aria-expanded="false">
+        <div class="mobile-nav-toggle-header">
+          <span class="mobile-nav-title">Our Services</span>
+          <i class="fa-solid fa-plus mobile-nav-toggle-icon" style="font-size: 12px;"></i>
+        </div>
+        <div class="mobile-nav-links">
+          {mdd}
+        </div>
+      </button>
+      {mnav2}
+      <a class="mobile-nav-link nav-link-cta" href="{root}contact/">Contact us {ARROW_R}</a>
+    </nav>
+  </div>
 </div>
 """
 
 
 def chrome_bottom(root, home, cta=True):
     band = f"""
-<section class="cta-band reveal" aria-label="Start a project">
-  <div class="cta-band-in">
-    <span class="cta-ghost" aria-hidden="true">OPRELL</span>
-    <div class="cta-band-l">
-      <span class="pill pill-d"><i></i>Start a project</span>
-      <h2 class="cta-band-t">Have a space in mind?<br><em>Let&rsquo;s build it.</em></h2>
-      <a class="cta-band-btn" href="{root}contact/" data-mag>Get in touch →</a>
-    </div>
-    <div class="cta-band-r">
-      <a href="mailto:contact@oprell.ae">contact@oprell.ae</a>
-      <a href="tel:+971525201792">+971 52 520 1792</a>
-      <span>Grosvenor Business Tower<br>Barsha Heights, Dubai</span>
-    </div>
+<section class="iconic-banner" aria-label="Start a project">
+  <div class="iconic-banner-bg" style="background-image:url('{root}assets/proj/villa-11.webp')"></div>
+  <div class="iconic-banner-inner">
+    <div class="iconic-banner-kicker">Start a project</div>
+    <h2 class="iconic-banner-title">HAVE A SPACE IN MIND? <span class="accent">LET'S BUILD IT.</span></h2>
+    <a class="btn btn-primary" href="{root}contact/" style="margin-top:26px">Contact us {ARROW_INLINE}</a>
   </div>
 </section>""" if cta else ''
     return band + f"""
-<footer class="foot">
-  <div class="foot-brand">
-    <a class="logo" href="{home}" aria-label="OPRELL Interiors"><img class="foot-logo" src="{root}assets/logo-white.png" alt="OPRELL Interiors"></a>
-    <p class="foot-addr">{ADDR}</p>
-  </div>
-  <nav class="foot-nav" aria-label="Footer">
-    <a href="{root}about/">About</a>
-    <a href="{root}services/">Services</a>
-    <a href="{root}projects/">Projects</a>
-    <a href="{root}contact/">Contact</a>
-  </nav>
-  <div class="foot-contact">
-    <a href="mailto:{EMAIL}">{EMAIL}</a>
-    <a href="{PHONE_TEL}">{PHONE_DISP}</a>
-    <div class="soc">
-      <a href="{IG}" target="_blank" rel="noopener" aria-label="Instagram">{IG_SVG}Instagram</a>
-      <a href="{WA}" target="_blank" rel="noopener" aria-label="WhatsApp">{WA_SVG}WhatsApp</a>
+<footer class="footer" id="contact">
+  <div class="container footer-top">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <div class="footer-brand">
+          <img class="footer-logo" src="{root}assets/logo.png" alt="OPRELL Interiors">
+        </div>
+        <div class="footer-social-grid" aria-label="Social links">
+          <a class="social-link" href="{IG}" target="_blank" rel="noopener" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+          <a class="social-link" href="{WA}" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <div class="footer-title">Our services</div>
+        <nav class="footer-links" aria-label="Footer services">
+          <a href="{root}services/">Interior Design</a>
+          <a href="{root}services/">Fit-Out &amp; Joinery</a>
+          <a href="{root}services/">Design + Build</a>
+          <a href="{root}services/">Villa Renovation</a>
+          <a href="{root}services/">Landscape &amp; Pools</a>
+        </nav>
+      </div>
+      <div class="footer-col">
+        <div class="footer-title">Company</div>
+        <nav class="footer-links" aria-label="Footer company">
+          <a href="{home}">Home</a>
+          <a href="{root}about/">About us</a>
+          <a href="{root}projects/">Projects</a>
+          <a href="{root}contact/">Contact us</a>
+        </nav>
+      </div>
+      <div class="footer-col">
+        <div class="footer-title">Contact</div>
+        <div class="footer-meta muted">
+          <div>Grosvenor Business Tower, Barsha Heights, Dubai, UAE</div>
+          <a class="footer-contact" href="mailto:{EMAIL}">{EMAIL}</a>
+          <a class="footer-contact" href="{PHONE_TEL}">{PHONE_DISP}</a>
+        </div>
+      </div>
     </div>
   </div>
-  <span class="foot-note">© 2026 OPRELL Interiors — Dubai, UAE</span>
-  <div class="foot-mark" aria-hidden="true">OPRELL</div>
+  <div class="footer-bottom">
+    <div class="container footer-bottom-inner">
+      <div class="muted">© <span id="year">2026</span> OPRELL Interiors &amp; Fit-Out. All rights reserved.</div>
+      <nav class="footer-legal" aria-label="Footer legal">
+        <a href="#" onclick="window.scrollTo({{top: 0, behavior: 'smooth'}}); return false;">Back to top</a>
+      </nav>
+    </div>
+  </div>
 </footer>
 """
 
 
 def scripts(root, js):
+    extra = f'<script src="{root}js/{js}?{V}"></script>' if js else ''
     return f"""
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-<script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
-<script src="{root}js/common.js?{V}"></script>
-<script src="{root}js/{js}?{V}"></script>
+<script src="{root}js/site.js?{V}"></script>
+{extra}
 <script>
 /* failsafe — if the JS bundle died, never leave the loader up */
 addEventListener('load', () => setTimeout(() => {{
-  const l = document.getElementById('loader');
-  if (l && !document.body.classList.contains('loaded')) {{
-    l.remove();
-    document.querySelectorAll('.reveal').forEach(e => e.classList.add('in'));
-  }}
+  const l = document.getElementById('page-loader');
+  if (l) l.classList.add('is-hidden');
 }}, 2600));
 </script>
 </body>
@@ -259,23 +341,23 @@ JSONLD = """<script type="application/ld+json">
 
 # ------------------------------------------------------------- pages --------
 PAGES = [
-    dict(file='index.html', frag='index', js='main.js', inner=False, path='',
+    dict(file='index.html', frag='index', js=None, inner=False, path='',
          og='assets/proj/villa-01.jpg', extra=JSONLD,
          title='OPRELL Interiors &amp; Fit-Out — Dubai',
          desc='OPRELL Interiors & Fit-Out — Dubai design and build practice. Interior design, fit-out, villa renovation and landscape works across the UAE.'),
-    dict(file='services/index.html', frag='services', js='page.js', inner=True, path='services/',
+    dict(file='services/index.html', frag='services', js=None, inner=True, path='services/',
          og='assets/proj/villa-11.jpg',
          title='Services — OPRELL Interiors &amp; Fit-Out, Dubai',
          desc='Interior design, fit-out, design + build, villa renovation, landscape and project management — delivered entirely in-house across the UAE.'),
-    dict(file='projects/index.html', frag='projects', js='page.js', inner=True, path='projects/',
+    dict(file='projects/index.html', frag='projects', js=None, inner=True, path='projects/',
          og='assets/proj/villa-03.jpg',
          title='Projects — OPRELL Interiors &amp; Fit-Out, Dubai',
          desc='Selected OPRELL projects — residential villas, commercial offices and F&B fit-outs delivered across the UAE, 2022–2024.'),
-    dict(file='about/index.html', frag='about', js='page.js', inner=True, path='about/',
+    dict(file='about/index.html', frag='about', js=None, inner=True, path='about/',
          og='assets/proj/office-08.jpg',
          title='About — OPRELL Interiors &amp; Fit-Out, Dubai',
          desc='OPRELL Interiors & Fit-Out — a Dubai design and build practice established 2020. 165+ in-house workforce, ISO 9001 · 14001 · 45001 certified.'),
-    dict(file='contact/index.html', frag='contact', js='page.js', inner=True, path='contact/',
+    dict(file='contact/index.html', frag='contact', js=None, inner=True, path='contact/',
          og='assets/proj/landscape-09.jpg',
          title='Contact — OPRELL Interiors &amp; Fit-Out, Dubai',
          desc='Start a project with OPRELL — interior design and fit-out across the UAE. contact@oprell.ae · +971 52 520 1792 · Barsha Heights, Dubai.'),
@@ -486,18 +568,19 @@ def project_main(p, nxt):
         quote = ('  <blockquote class="pd-quote reveal">“' + html.escape(q) +
                  '”<cite>— ' + html.escape(who) + '</cite></blockquote>\n')
     return f"""<main id="main">
-<section class="page-hero page-hero-dark">
-  <span class="ph-ghost" aria-hidden="true">OPRELL</span>
-  <div class="hero-line reveal">
+<section class="projects-hero" id="hero">
+  <div class="projects-hero-bg" style="background-image:url('{hero_img}')"></div>
+  <div class="projects-hero-overlay"></div>
+  <div class="container projects-hero-inner">
     <nav class="crumbs" aria-label="Breadcrumb"><ol>
       <li><a href="../">Home</a></li>
       <li><a href="../projects/">Projects</a></li>
       <li aria-current="page"><span>{t}</span></li>
     </ol></nav>
-    <span class="pill"><i></i>{p['sector']}</span>
+    <div class="projects-hero-kicker">{html.escape(p['sector'])} · {html.escape(p['location'])}</div>
+    <h1 class="projects-hero-title">{t}</h1>
+    <p class="projects-hero-lead">{html.escape(p['meta'])}</p>
   </div>
-  <h1 class="reveal d1">{t}<em>.</em></h1>
-  <p class="page-sub reveal d2">{html.escape(p['meta'])}</p>
 </section>
 
 <section class="pd-body">
@@ -527,6 +610,188 @@ def project_main(p, nxt):
 
 GENERATED = '<!-- GENERATED by build.py — edit content/*.html or build.py, then re-run -->\n'
 
+def cover_src(p):
+    """Best card image for a project — flat highlight first, then imported cover.
+    Prefers .webp so the file isn't re-wrapped in a <picture> by enhance_imgs."""
+    if p['images']:
+        stem = p['images'][0]
+        for cand in (f'assets/proj/{stem[:-4]}.webp', f'assets/proj/{stem}'):
+            if stem.lower().endswith('.jpg') and os.path.exists(cand):
+                return cand
+        return f'assets/proj/{stem}'
+    c = p.get('cover')
+    if c:
+        for cand in (f'assets/proj/{c}-800.webp', f'assets/proj/{c}.webp'):
+            if os.path.exists(cand):
+                return cand
+    return ''
+
+
+STATUS_MAP = {'delivered': 'completed', 'in progress': 'in_progress',
+              'ongoing programme': 'in_progress', 'ongoing': 'in_progress',
+              'design stage': 'upcoming', 'upcoming': 'upcoming'}
+
+
+GRID_ICON = '<i class="fa-regular fa-images" aria-hidden="true"></i>'
+EXPAND_ICON = '<i class="fa-solid fa-expand" aria-hidden="true"></i>'
+
+
+def project_photos(p):
+    """Full-size gallery image URLs for a project (webp where available)."""
+    out = []
+    for src in p['images']:
+        st = src[:-4] if src.lower().endswith('.jpg') else src
+        out.append(f'assets/proj/{st}.webp'
+                   if os.path.exists(f'assets/proj/{st}.webp')
+                   else f'assets/proj/{src}')
+    for s in p.get('sections', []):
+        out += [f'assets/proj/{stem}.webp' for stem in s['images']]
+    return out
+
+
+def project_rows():
+    rows = []
+    for i, p in enumerate(PROJECTS):
+        t = html.escape(p['title'])
+        cat = re.sub(r'[^a-z]+', '_', p['sector'].lower()).strip('_')
+        loc = html.escape(p.get('location', 'Dubai'))
+        city = html.escape(p['location'].split(',')[-1].strip())
+        status = STATUS_MAP.get(p['status'].lower(), 'completed')
+        img = cover_src(p)
+        rev = ' project-row--reverse' if i % 2 else ''
+        media = (f'<img src="../{img}" alt="{t}" loading="lazy">' if img
+                 else '<span class="project-media-empty">OPRELL</span>')
+        photos = html.escape(json.dumps([f'../{u}' for u in project_photos(p)]), quote=True)
+        rows.append(f"""      <article class="project-row{rev}" id="project-{p['slug']}" data-category="{cat}" data-status="{status}" data-city="{city}">
+        <div class="project-row-media" data-photos="{photos}" tabindex="0" role="button" aria-label="Open {t} gallery">
+          {media}
+          <span class="project-status project-status-{status}">{html.escape(p['status'])}</span>
+          <div class="project-media-actions">
+            <button class="pma-btn" type="button" data-open-gallery aria-label="Open gallery">{GRID_ICON}</button>
+            <button class="pma-btn" type="button" data-open-full aria-label="Open fullscreen">{EXPAND_ICON}</button>
+          </div>
+        </div>
+        <div class="project-row-body">
+          <p class="project-row-eyebrow">{html.escape(p['sector'])} · {loc}</p>
+          <h2 class="project-row-title">{t}</h2>
+          <p class="project-row-summary">{html.escape(p['desc'])}</p>
+          <dl class="project-row-facts">
+            <div class="project-row-fact"><dt>Sector</dt><dd>{html.escape(p['sector'])}</dd></div>
+            <div class="project-row-fact"><dt>Location</dt><dd>{loc}</dd></div>
+            <div class="project-row-fact"><dt>Status</dt><dd>{html.escape(p['status'])}</dd></div>
+          </dl>
+        </div>
+      </article>""")
+    return '\n'.join(rows)
+
+
+FEATURED = ('susans-baking', 'cfo-office', 'hattan-villa',
+            'dubai-hills', 'villa-798-mbr-city-district-one',
+            'maeen-villa-165-the-lakes', 'landscape', 'meadows-2')
+
+
+MAP_GEO = [
+    ('arabian ranches 2', 55.250, 25.030),
+    ('arabian ranches', 55.268, 25.045),
+    ('dubai hills', 55.248, 25.110),
+    ('district one', 55.318, 25.165),
+    ('mbr city', 55.318, 25.165),
+    ('jumeirah golf', 55.205, 24.985),
+    ('jumeirah bay', 55.252, 25.215),
+    ('jumeirah park', 55.170, 25.040),
+    ('jumeirah hills', 55.200, 25.050),
+    ('jumeirah islands', 55.155, 25.060),
+    ('palm jumeirah', 55.135, 25.110),
+    ('jumeirah', 55.240, 25.190),
+    ('the lakes', 55.165, 25.058),
+    ('meadows', 55.152, 25.050),
+    ('jafza', 55.080, 24.990),
+    ('jlt', 55.145, 25.070),
+    ('barsha heights', 55.175, 25.095),
+    ('tecom', 55.175, 25.095),
+    ('al quoz', 55.220, 25.140),
+    ('dubai', 55.270, 25.200),
+]
+
+
+def geo_xy(lon, lat):
+    W, N, E, S = 51.530570, 26.079028, 56.382213, 22.496694
+    return round((lon - W) / (E - W) * 760.1441, 1), round((N - lat) / (N - S) * 612.5336, 1)
+
+
+def map_locations_json():
+    locs = []
+    for i, p in enumerate(PROJECTS):
+        text = (p['location'] + ' ' + p['title']).lower()
+        lon, lat = next(((ln, lt) for kw, ln, lt in MAP_GEO if kw in text),
+                      (55.270, 25.200))
+        jx = ((i % 3) - 1) * 7.0
+        jy = ((i % 2) - 0.5) * 9.0
+        x, y = geo_xy(lon, lat)
+        locs.append({
+            'id': p['slug'], 'slug': p['slug'], 'title': p['title'],
+            'city': 'Dubai', 'type': 'project',
+            'x': round(x + jx, 1), 'y': round(y + jy, 1),
+            'page': i // 8 + 1,
+            'description': p['desc'][:140],
+        })
+    return json.dumps(locs)
+
+
+def marquee_items():
+    pin = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"'
+           ' style="display: inline-block; vertical-align: middle; width: 14px; height: 14px;'
+           ' margin-right: 6px; color: rgba(0, 0, 0, 0.6);">'
+           '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>'
+           '<circle cx="12" cy="10" r="3"></circle></svg>')
+    items = []
+    for p in PROJECTS:
+        t = html.escape(p['title'])
+        img = cover_src(p)
+        media = (f'<img src="{img}" alt="{t}" class="presence-project-image" loading="lazy">' if img
+                 else f'<div class="presence-project-placeholder"><span>{html.escape(p["title"][:2])}</span></div>')
+        items.append(f"""          <div class="presence-project-item">
+            <a href="projects/#project-{p['slug']}" class="presence-project-link">
+              {media}
+              <div class="presence-project-info">
+                <h4 class="presence-project-title">{t}</h4>
+                <p class="presence-project-location">{pin}{html.escape(p['location'])}</p>
+                <span class="presence-project-status">{html.escape(p['status'])}</span>
+              </div>
+            </a>
+          </div>""")
+    return '\n'.join(items * 2)
+
+
+def featured_cards():
+    by_slug = {p['slug']: p for p in PROJECTS}
+    cards = []
+    for i, slug in enumerate(FEATURED, 1):
+        p = by_slug.get(slug)
+        if not p:
+            continue
+        t = html.escape(p['title'])
+        img = cover_src(p)
+        media = (f'<img src="{img}" alt="{t}" loading="lazy">' if img
+                 else '<span class="project-media-empty">OPRELL</span>')
+        status = STATUS_MAP.get(p['status'].lower(), 'completed')
+        cards.append(f"""          <article class="project-card">
+            <a href="projects/#project-{p['slug']}" class="project-link">
+              <div class="project-media">{media}
+                <span class="project-status project-status-{status}">{html.escape(p['status'])}</span>
+                <span class="project-card-n">{i:02d}</span>
+              </div>
+              <div class="project-body">
+                <div class="kicker">{html.escape(p['sector'])} · {html.escape(p['location'])}</div>
+                <h3 class="h3">{t}</h3>
+                <p class="muted">{html.escape(p['desc'][:110])}…</p>
+                <span class="project-card-cta">View project <i>→</i></span>
+              </div>
+            </a>
+          </article>""")
+    return '\n'.join(cards)
+
+
 # extra projects + gallery sections imported from the Desktop archive
 try:
     from projects_new import SECTIONS, EXTRA_PROJECTS
@@ -547,6 +812,11 @@ def build():
         root = '' if not pg['inner'] else '../'
         home = '#top' if not pg['inner'] else '../'
         body = open('content/' + pg['frag'] + '.html', encoding='utf-8').read()
+        body = body.replace('%%PROJECT_ROWS%%', project_rows()) \
+                   .replace('%%FEATURED_CARDS%%', featured_cards()) \
+                   .replace('%%MAP_LOCATIONS%%', map_locations_json()) \
+                   .replace('%%MAP_MARQUEE%%', marquee_items()) \
+                   .replace('%%PROJECT_COUNT%%', str(len(PROJECTS)))
         out = (GENERATED + head(pg['title'], pg['desc'], root, pg['path'], pg['og'],
                                 pg.get('extra', ''))
                + chrome_top(root, home, pg['inner']) + '\n'
@@ -597,3 +867,4 @@ def build():
 
 if __name__ == '__main__':
     build()
+

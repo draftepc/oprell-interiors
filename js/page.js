@@ -1,8 +1,10 @@
 /* ============================================================
    OPRELL — inner pages only
    project gallery slider · fullscreen lightbox
-   Requires common.js first ($, $$, lenis, bgEls). No gsap needed.
    ============================================================ */
+const $  = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const lenis = null;
 
 /* ---------------- deck sliders (per-section, atzedent-style) ---------------- */
 const deckRots = $$('.pd-deck').map(deck => {
