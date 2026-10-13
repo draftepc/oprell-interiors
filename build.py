@@ -385,7 +385,7 @@ PROJECTS = [
          desc='A complete villa design and build in Jumeirah Hills — every room documented from shell to handover. Interior architecture, custom joinery and finishes produced by OPRELL craftsmen.',
          quote=None,
          images=imgs('jumeirah')),
-    dict(slug='cfo-office', num='03', title='CFO Office — DP World',
+    dict(slug='cfo-office', num='03', title='CFO Office - DP World',
          meta='Commercial fit-out — Jafza LOB 17, Dubai',
          sector='Commercial', location='Jafza LOB 17, Dubai', status='Delivered',
          desc='An executive office fit-out for DP World at Jafza LOB 17 — designed, produced and installed by our in-house team. From the 3D proposal through fit-out works to handover.',
@@ -685,9 +685,7 @@ def project_rows():
     return '\n'.join(rows)
 
 
-FEATURED = ('susans-baking', 'cfo-office', 'hattan-villa',
-            'dubai-hills', 'villa-798-mbr-city-district-one',
-            'maeen-villa-165-the-lakes', 'landscape', 'meadows-2')
+FEATURED = ('susans-baking', 'cfo-office', 'hattan-villa', 'dubai-hills')
 
 FEATURED_BLURBS = {
     'susans-baking': 'Counters and display units for Dubai’s artisan bakery.',
@@ -793,7 +791,6 @@ def featured_cards():
               <div class="project-body">
                 <h3 class="h3">{t}</h3>
                 <p class="muted">{html.escape(FEATURED_BLURBS.get(slug, p['desc']))}</p>
-                <span class="project-card-cta">View project <i>→</i></span>
               </div>
             </a>
           </article>""")
