@@ -98,7 +98,7 @@
 .gal-item:focus-visible{outline:2px solid var(--op-yel);outline-offset:3px}
 .gal-vid{
   display:block;width:100%;aspect-ratio:4/3;object-fit:cover;
-  border-radius:var(--op-r-sm);background:#23262a;
+  border-radius:var(--op-r-sm);background:#000;
 }
 
 .pd-docs{list-style:none;margin:1.4rem 0 0;display:flex;flex-wrap:wrap;gap:.6rem}
@@ -145,7 +145,7 @@
 .pd-deck{
   position:relative;height:100vh;width:100vw;margin-bottom:6vh;
   margin-left:calc(50% - 50vw);
-  overflow:hidden;background:#23262a;
+  overflow:hidden;background:#000;
   --x-off:0px;
 }
 .deck-bg{
@@ -399,7 +399,7 @@
 
 
 /* about page - oprell-specific */
-.about-statement{padding:clamp(5rem,10vw,8rem) 0;background:#fff}
+.about-statement{padding:clamp(2rem,4vw,3rem) 0 clamp(1.25rem,2.5vw,2rem);background:#fff}
 .about-statement-kicker{font:800 .72rem 'Manrope';letter-spacing:.28em;color:var(--op-gold);margin-bottom:2rem;display:flex;align-items:center;gap:14px}
 .about-statement-kicker::before{content:'';width:52px;height:2px;background:var(--op-yel)}
 .about-statement h2{font-family:'Red Hat Display',sans-serif;font-weight:800;font-size:clamp(2.2rem,5.4vw,4.4rem);line-height:1.06;letter-spacing:-.03em;color:var(--op-ink);max-width:20ch}
@@ -408,9 +408,10 @@
 .about-statement-foot{margin-top:3.4rem;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(2rem,5vw,4.5rem)}
 .about-statement-foot p{max-width:none;font-size:.95rem;line-height:1.8;color:var(--op-ink2)}
 
-.roof-band{background:#23262a;color:#fff;padding:clamp(4.5rem,8vw,7rem) 0;position:relative;overflow:hidden}
-.roof-band::before{content:'';position:absolute;inset:0;background:url('../assets/proj/kitchen-01.webp') center/cover;opacity:.16;pointer-events:none}
-.roof-band::after{content:'OPRELL';position:absolute;right:-1%;bottom:-8%;font-family:'Red Hat Display',sans-serif;font-weight:900;font-size:clamp(8rem,18vw,17rem);line-height:.8;color:rgba(235,196,12,.07);pointer-events:none;letter-spacing:-.04em}
+.roof-band{background:var(--surface);color:#fff;padding:clamp(1rem,2vw,1.5rem) 0;position:relative;overflow:hidden}
+.roof-band .container{background:#000;border-radius:20px;padding:clamp(2rem,4.5vw,3.5rem);position:relative;overflow:hidden}
+.roof-band .container::before{content:'';position:absolute;inset:0;background:url('../assets/proj/kitchen-01.webp') center/cover;opacity:.14;pointer-events:none}
+.roof-band .container::after{content:'OPRELL';position:absolute;right:-1%;bottom:-8%;font-family:'Red Hat Display',sans-serif;font-weight:900;font-size:clamp(8rem,18vw,17rem);line-height:.8;color:rgba(235,196,12,.07);pointer-events:none;letter-spacing:-.04em}
 .roof-band .section-kicker{color:var(--op-yel)}
 .roof-band h2.h2{color:#fff}
 .roof-band .muted{color:rgba(255,255,255,.62)}
@@ -425,9 +426,10 @@
 .roof-step p{font-size:.87rem;line-height:1.7;color:rgba(255,255,255,.58);margin:0}
 
 .about-workshop{display:grid;grid-template-columns:1fr 1fr;gap:clamp(2.5rem,5vw,4.5rem);align-items:center}
-.about-workshop-fig{position:relative;aspect-ratio:5/4;overflow:hidden;border-radius:var(--op-rad);box-shadow:var(--op-shadow)}
-.about-workshop-fig img{width:100%;height:100%;object-fit:cover}
-.about-workshop-fig::after{content:'';position:absolute;left:0;right:0;bottom:0;height:5px;background:var(--op-yel)}
+.about-workshop-fig{position:relative;aspect-ratio:5/4;overflow:hidden;border:16px solid rgba(0,0,0,.1);box-shadow:var(--op-shadow)}
+.about-workshop-fig img{width:100%;height:100%;object-fit:cover;filter:grayscale(1) contrast(1.05);transform:scale(1.02);transition:filter 800ms ease,transform 800ms ease}
+.about-workshop-fig:hover img{filter:grayscale(0) contrast(1.05);transform:scale(1.06)}
+
 .about-workshop-list{list-style:none;margin:1.8rem 0 0;padding:0;display:grid;gap:.9rem}
 .about-workshop-list li{display:flex;gap:.9rem;align-items:baseline;font-size:.95rem;color:var(--op-ink2);line-height:1.6}
 .about-workshop-list li::before{content:'';flex-shrink:0;width:7px;height:7px;background:var(--op-yel);border-radius:50%}
@@ -454,7 +456,7 @@
 /* contact direct-line icon */
 .contact-icon{color:rgba(0,0,0,.15);margin-bottom:20px;display:block}
 /* mission card icons */
-.mission-icon{width:56px;height:56px;border-radius:14px;background:#23262a;color:#EBC40C;display:grid;place-items:center;margin-bottom:18px;transition:transform .3s ease,background .3s ease}
+.mission-icon{width:56px;height:56px;border-radius:14px;background:#000;color:#EBC40C;display:grid;place-items:center;margin-bottom:18px;transition:transform .3s ease,background .3s ease}
 .about-mission-card:hover .mission-icon{background:#EBC40C;color:#000;transform:translateY(-3px)}
 .about-mission-primary .mission-icon{background:#EBC40C;color:#000}
 .about-mission-primary:hover .mission-icon{background:#fff;color:#000}
@@ -469,3 +471,27 @@
 .about-statement-sign-text{font-size:.72rem;font-weight:800;letter-spacing:.24em;text-transform:uppercase;color:var(--op-gold)}
 
 @media (max-width:720px){.about-statement-foot{grid-template-columns:1fr}}
+
+/* Under-one-roof steps — photo texture, different crop per card */
+.roof-step::before{display:none}
+.roof-step>*{position:relative;z-index:1}
+.roof-step::after{content:'';position:absolute;inset:0;background:url('../assets/proj/kitchen-01.webp') center/cover;opacity:.15;pointer-events:none;z-index:0}
+.roof-step:nth-child(1)::after{background-position:left top;background-size:170% auto}
+.roof-step:nth-child(2)::after{background-position:right top;background-size:230% auto}
+.roof-step:nth-child(3)::after{background-position:left bottom;background-size:140% auto}
+.roof-step:nth-child(4)::after{background-position:right bottom;background-size:200% auto}
+
+
+/* Mission cards — match site card system */
+.about-mission-card{border-radius:16px}
+.about-mission-image{border-radius:16px}
+
+
+/* Mission cards — photo texture, different crop per card */
+.about-mission-card{position:relative;overflow:hidden}
+.about-mission-card>*{position:relative;z-index:1}
+.about-mission-primary::before,.about-mission-secondary::before,.about-mission-accent::before{content:'';position:absolute;inset:0;background:url('../assets/proj/kitchen-01.webp') center/cover;opacity:.18;pointer-events:none;z-index:0}
+.about-mission-primary::before{background-position:left top;background-size:170% auto}
+.about-mission-secondary::before{background-position:right top;background-size:220% auto}
+.about-mission-card:nth-child(3).about-mission-accent::before{background-position:left bottom;background-size:150% auto}
+.about-mission-card:nth-child(4).about-mission-accent::before{background-position:right bottom;background-size:200% auto}
