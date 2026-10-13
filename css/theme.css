@@ -6056,3 +6056,9 @@ section#projects .project-card:focus-within .project-media img {
 .about-statement-inner{position:relative;z-index:1}
 
 
+
+/* Stats grid — restore row divider in 2-col layout */
+@media (max-width:820px){
+  .stat:nth-last-child(-n+4){border-bottom:1px solid rgba(255,255,255,.16)}
+  .stat:nth-last-child(-n+2){border-bottom:none}
+}
