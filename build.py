@@ -153,7 +153,7 @@ CHEV_UP = ('<svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="cu
 NAV_ITEMS = [('Home', '{home}'), ('About us', '{root}about/'),
              ('Projects', '{root}projects/')]
 SERVICES_DD = [('Interior Design', 'interior-design'), ('Fit-Out & Joinery', 'fit-out-joinery'),
-               ('Design + Build', 'design-build'), ('Villa Renovation', 'villa-renovation'),
+               ('Design + Build', 'design-build'),
                ('Landscape & Pools', 'landscape-pools'), ('Project Management', 'project-management')]
 
 
@@ -331,7 +331,7 @@ addEventListener('load', () => setTimeout(() => {{
 JSONLD = """<script type="application/ld+json">
 {"@context":"https://schema.org","@type":"LocalBusiness",
  "name":"OPRELL Interiors & Fit-Out",
- "description":"Dubai design and build practice — interior design, fit-out, villa renovation and landscape works across the UAE.",
+ "description":"Dubai design and build practice — interior design, fit-out, joinery and landscape works across the UAE.",
  "url":"https://oprell.ae/","email":"contact@oprell.ae","telephone":"+971525201792",
  "image":"https://oprell.ae/assets/proj/villa-01.jpg",
  "address":{"@type":"PostalAddress","streetAddress":"Grosvenor Business Tower, Barsha Heights","addressLocality":"Dubai","addressCountry":"AE"},
