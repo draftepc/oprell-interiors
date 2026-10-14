@@ -181,7 +181,7 @@ def chrome_top(root, home, inner):
 
 <div class="page-loader" id="page-loader">
   <div class="page-loader-content">
-    <div class="page-loader-logo"><img src="{root}assets/logo-white.png" alt="OPRELL Interiors"></div>
+    <div class="page-loader-logo"><img src="{root}assets/logo-white.webp" alt="OPRELL Interiors"></div>
     <div class="page-loader-spinner"></div>
   </div>
 </div>
@@ -195,7 +195,7 @@ def chrome_top(root, home, inner):
 <header class="site-header is-visible">
   <div class="container header-inner">
     <a class="brand" href="{home}" aria-label="OPRELL Home">
-      <img class="brand-logo" src="{root}assets/logo.png" alt="OPRELL Interiors">
+      <img class="brand-logo" src="{root}assets/logo.webp" alt="OPRELL Interiors">
     </a>
     <nav class="nav-shell" aria-label="Primary">
       {nav}
@@ -223,7 +223,7 @@ def chrome_top(root, home, inner):
   <div class="mobile-menu-inner">
     <div class="mobile-menu-top">
       <a class="brand" href="{home}" aria-label="OPRELL Home">
-        <img class="brand-logo" src="{root}assets/logo.png" alt="OPRELL Interiors">
+        <img class="brand-logo" src="{root}assets/logo.webp" alt="OPRELL Interiors">
       </a>
       <button class="menu-close" type="button">
         <span class="sr-only">Close menu</span>{CLOSE_SVG}
@@ -264,7 +264,7 @@ def chrome_bottom(root, home, cta=True):
     <div class="footer-grid">
       <div class="footer-col">
         <div class="footer-brand">
-          <img class="footer-logo" src="{root}assets/logo.png" alt="OPRELL Interiors">
+          <img class="footer-logo" src="{root}assets/logo.webp" alt="OPRELL Interiors">
         </div>
         <div class="footer-social-grid" aria-label="Social links">
           <a class="social-link" href="{IG}" target="_blank" rel="noopener" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
