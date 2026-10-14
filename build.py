@@ -79,7 +79,7 @@ def webp_srcset(root, name):
 
 
 IMG_RE = re.compile(
-    r'<img\b([^>]*?)(?<![\w-])src="((?:\.\./)?assets/proj/([\w-]+)\.jpg)"([^>]*)>')
+    r'<img\b([^>]*?)(?<![\w-])src="((?:\.\./)?assets/proj/([\w/-]+)\.jpg)"([^>]*)>')
 
 
 def enhance_imgs(html_text):
@@ -250,7 +250,7 @@ def chrome_top(root, home, inner):
 def chrome_bottom(root, home, cta=True):
     band = f"""
 <section class="iconic-banner" aria-label="Start a project">
-  <div class="iconic-banner-bg" style="background-image:url('{root}assets/proj/villa-11.webp')"></div>
+  <div class="iconic-banner-bg" style="background-image:url('{root}assets/proj/hr-office/62759850.png')"></div>
   <div class="iconic-banner-inner">
     <div class="iconic-banner-kicker">Start a project</div>
     <h2 class="iconic-banner-title">HAVE A SPACE IN MIND? <span class="accent">LET'S BUILD IT.</span></h2>
@@ -365,78 +365,132 @@ PAGES = [
 
 
 # ------------------------------------------------------------- projects -----
-def imgs(slug, extra=()):
-    files = sorted(os.path.basename(p)
-                   for p in glob.glob(f'assets/proj/{slug}-*.jpg'))
-    return list(files) + list(extra)
+def imgs(slug, first=None):
+    """All source images inside assets/proj/<slug>/ as 'slug/name.jpg' paths.
+
+    first: optional filename to pin as the lead/cover image.
+    """
+    exts = {'.jpg', '.jpeg', '.png'}
+    files = sorted(
+        f'{slug}/{os.path.basename(p)}'
+        for p in glob.glob(f'assets/proj/{slug}/*')
+        if os.path.isfile(p)
+        and os.path.splitext(p)[1].lower() in exts
+        and not p.lower().endswith('-800.webp'))
+    if first and f'{slug}/{first}' in files:
+        files.remove(f'{slug}/{first}')
+        files.insert(0, f'{slug}/{first}')
+    return files
 
 
 PROJECTS = [
-    dict(slug='hattan-villa', num='01', title='Hattan Villa',
-         meta='Residential renovation — Arabian Ranches, Dubai',
-         sector='Residential', location='Arabian Ranches, Dubai', status='Delivered',
-         desc='A full villa renovation in Hattan, Arabian Ranches — from structural approvals with Emaar to the final finishes, delivered by our in-house team. New joinery, flooring, lighting and a reworked layout tuned to family living.',
-         quote=('We had a very positive experience working with Oprell, finding the company to be professional and organized with clear communication and a dedicated contact person. The work was completed to a high standard without any surprises or additional charges.',
-                'Hattan Villa Owner'),
-         images=imgs('villa')),
-    dict(slug='jumeirah-hills', num='02', title='Jumeirah Hills Villa',
-         meta='Residential — Jumeirah Hills, Dubai',
-         sector='Residential', location='Jumeirah Hills, Dubai', status='Delivered',
-         desc='A complete villa design and build in Jumeirah Hills — every room documented from shell to handover. Interior architecture, custom joinery and finishes produced by OPRELL craftsmen.',
-         quote=None,
-         images=imgs('jumeirah')),
-    dict(slug='cfo-office', num='03', title='CFO Office - DP World',
-         meta='Commercial fit-out — Jafza LOB 17, Dubai',
-         sector='Commercial', location='Jafza LOB 17, Dubai', status='Delivered',
-         desc='An executive office fit-out for DP World at Jafza LOB 17 — designed, produced and installed by our in-house team. From the 3D proposal through fit-out works to handover.',
-         quote=('The transformation is truly remarkable and has left a lasting impression on both our clients and employees.',
-                'DP World'),
-         images=imgs('cfo')),
-    dict(slug='susans-baking', num='04', title="Susan's Baking Co.",
+    dict(slug='susans-baking', num='01', title="Susan's Baking Co.",
          meta='Retail / F&B fit-out — Dubai',
          sector='Retail / F&B', location='Dubai', status='Delivered',
          desc="A retail and F&B fit-out for Susan's Baking Co. — counters, shelving, display units and finishes built in our joinery to the brand palette. From drawings to opening day under one team.",
          quote=('We are proud to showcase our bakery and coffee shop set-up, and we owe it all to the expertise of Oprell Interiors.',
                 "Susan's Bakery & Co."),
-         images=imgs('susans')),
-    dict(slug='jlt-washroom', num='05', title='JLT, Hanfinia',
+         images=imgs('susans-baking')),
+    dict(slug='cfo-office', num='02', title='CFO Office - DP World',
+         meta='Commercial fit-out — Jafza LOB 17, Dubai',
+         sector='Commercial', location='Jafza LOB 17, Dubai', status='Delivered',
+         desc='An executive office fit-out for DP World at Jafza LOB 17 — designed, produced and installed by our in-house team. From the 3D proposal through fit-out works to handover.',
+         quote=('The transformation is truly remarkable and has left a lasting impression on both our clients and employees.',
+                'DP World'),
+         images=imgs('cfo-office', first='86856087.jpg')),
+    dict(slug='hr-office', num='03', title='HR Office',
+         meta='Commercial fit-out — Jafza LOB 15, Dubai',
+         sector='Commercial', location='Jafza LOB 15, Dubai', status='Delivered',
+         desc='An HR department office fit-out at Jafza LOB 15 — workstations, partitions, ceiling and services delivered by OPRELL in-house trades.',
+         quote=None,
+         images=imgs('hr-office')),
+    dict(slug='jlt-hanfinia', num='06', title='JLT, Hanfinia',
          meta='Renovation — JLT, Dubai',
          sector='Renovation', location='JLT, Dubai', status='Delivered',
          desc='A complete renovation in JLT — stripped to the shell, replumbed and refitted with marble finishes, brass fittings and custom joinery, shown here from the original state to the design proposal and the finished room.',
          quote=('Not only does the new bathroom meet our practical needs, but it also elevates our entire space.',
                 'JLT Washroom Client'),
-         images=imgs('jbr') + imgs('washroom')),
-    dict(slug='hr-office', num='06', title='HR Office',
-         meta='Commercial fit-out — Jafza LOB 15, Dubai',
-         sector='Commercial', location='Jafza LOB 15, Dubai', status='Delivered',
-         desc='An HR department office fit-out at Jafza LOB 15 — workstations, partitions, ceiling and services delivered by OPRELL in-house trades.',
+         images=imgs('jlt-hanfinia')),
+    dict(slug='dubai-hills', num='07', title='Dubai Hills Villa',
+         meta='Residential — Dubai Hills, Dubai',
+         sector='Residential', location='Dubai Hills, Dubai', status='Delivered',
+         desc='A family villa in Dubai Hills — interior design, joinery and finishes documented from site progress to the finished home.',
          quote=None,
-         images=imgs('office')),
-    dict(slug='trucks-showroom', num='07', title='Trucks Showroom',
-         meta='Commercial — Dubai',
-         sector='Commercial', location='Dubai', status='In progress',
-         desc='A trucks showroom and office — documented from the existing shell through drawings to the design proposal, with fit-out works in progress.',
+         images=imgs('dubai-hills', first='11641661.jpg')),
+    dict(slug='villa-798', num='08', title='Private Villa, District One',
+         meta='Residential — District One, Dubai',
+         sector='Residential', location='District One, Dubai', status='Delivered',
+         desc='A complete villa interior in District One, MBR City — documented across every stage from first site photos to the finished rooms.',
          quote=None,
-         images=imgs('showroom') + ['misc-02.jpg']),
-    dict(slug='landscape', num='08', title='Landscape & Pool Works',
+         images=imgs('villa-798', first='92823847.jpg')),
+    dict(slug='villa-arabian-ranches', num='09', title='Private Villa, Arabian Ranches',
+         meta='Residential — Arabian Ranches, Dubai',
+         sector='Residential', location='Arabian Ranches, Dubai', status='Delivered',
+         desc='A private villa interior in Arabian Ranches — designed, produced and installed by the OPRELL in-house team.',
+         quote=None,
+         images=imgs('villa-arabian-ranches', first='54741262.jpg')),
+    dict(slug='villa-arabian-ranches-1', num='10', title='Private Villa 2, Arabian Ranches',
+         meta='Residential — Arabian Ranches, Dubai',
+         sector='Residential', location='Arabian Ranches, Dubai', status='Delivered',
+         desc='A second private villa interior in Arabian Ranches — photographed through the works to handover.',
+         quote=None,
+         images=imgs('villa-arabian-ranches-1', first='24166224.jpg')),
+    dict(slug='villa-saheel', num='11', title='Private Villa, Saheel',
+         meta='Residential — Saheel, Arabian Ranches',
+         sector='Residential', location='Saheel, Arabian Ranches', status='Delivered',
+         desc='A private villa in Saheel, Arabian Ranches — interior works delivered end-to-end by one accountable team.',
+         quote=None,
+         images=imgs('villa-saheel', first='24172882.jpg')),
+    dict(slug='villa-saheel-1', num='12', title='Private Villa 2, Saheel',
+         meta='Residential — Saheel, Arabian Ranches',
+         sector='Residential', location='Saheel, Arabian Ranches', status='Delivered',
+         desc='A second private villa in Saheel, Arabian Ranches — full documentation from site progress to finished rooms.',
+         quote=None,
+         images=imgs('villa-saheel-1')),
+    dict(slug='jumeirah-bay', num='13', title='Jumeirah Bay Villa',
+         meta='Residential — Jumeirah Bay, Dubai',
+         sector='Residential', location='Jumeirah Bay, Dubai', status='Delivered',
+         desc='A private villa interior on Jumeirah Bay — joinery, finishes and detailing produced and installed in-house.',
+         quote=None,
+         images=imgs('jumeirah-bay', first='85162815.jpg')),
+    dict(slug='jumeirah-golf-estate', num='14', title='Private Villa, Jumeirah Golf Estates',
+         meta='Residential — Jumeirah Golf Estates, Dubai',
+         sector='Residential', location='Jumeirah Golf Estates, Dubai', status='Delivered',
+         desc='A private villa in Jumeirah Golf Estates — documented through site progress to the finished interior.',
+         quote=None,
+         images=imgs('jumeirah-golf-estate', first='50972804.jpg')),
+    dict(slug='jumeirah-palm', num='15', title='Private Villa, Jumeirah Palm',
+         meta='Residential — Palm Jumeirah, Dubai',
+         sector='Residential', location='Palm Jumeirah, Dubai', status='Delivered',
+         desc='A private villa interior on the Palm Jumeirah — delivered by OPRELL design and build teams.',
+         quote=None,
+         images=imgs('jumeirah-palm')),
+    dict(slug='jumeirah-villa', num='16', title='Private Villa, Jumeirah',
+         meta='Residential — Jumeirah, Dubai',
+         sector='Residential', location='Jumeirah, Dubai', status='Delivered',
+         desc='A private villa in Jumeirah — interior works from first visit photos through to the finished spaces.',
+         quote=None,
+         images=imgs('jumeirah-villa', first='45390960.jpg')),
+    dict(slug='maeen-villa', num='17', title='Maeen Private Villa, The Lakes',
+         meta='Residential — The Lakes, Dubai',
+         sector='Residential', location='The Lakes, Dubai', status='Delivered',
+         desc='A private villa renovation at The Lakes — room-by-room documentation from before to finished.',
+         quote=None,
+         images=imgs('maeen-villa', first='3720514.jpg')),
+    dict(slug='meadows', num='18', title='Meadows Villa',
+         meta='Residential renovation — Meadows, Dubai',
+         sector='Renovation', location='Meadows, Dubai', status='Delivered',
+         desc='A Meadows villa renovation delivered in stages — documented before, during and after the works.',
+         quote=None,
+         images=imgs('meadows', first='40689616.jpg')),
+    dict(slug='landscape', num='19', title='Landscape & Pool Works',
          meta='Outdoor works — UAE',
-         sector='Landscape', location='UAE', status='Ongoing programme',
+         sector='Landscape', location='UAE', status='Delivered',
          desc='Landscape and outdoor works across the UAE — planting, hardscape, irrigation and pool surroundings executed as part of our design-and-build programme.',
          quote=None,
-         images=imgs('landscape') + ['misc-01.jpg', 'misc-03.jpg']),
-    dict(slug='kitchen', num='09', title='Kitchen Design',
-         meta='Residential interiors — Dubai',
-         sector='Residential', location='Dubai', status='Delivered',
-         desc='A kitchen designed and produced in our joinery — cabinetry, surfaces and lighting composed around daily use.',
-         quote=None,
-         images=imgs('kitchen')),
-    dict(slug='bedroom', num='10', title='Bedroom Interiors',
-         meta='Residential interiors — Dubai',
-         sector='Residential', location='Dubai', status='Design stage',
-         desc='Bedroom interior concepts produced by our design team — layouts, materials and lighting visualised before execution.',
-         quote=None,
-         images=imgs('bedroom')),
+         images=imgs('landscape')),
 ]
+
 
 
 BLANK_GIF = ('data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAAB'
@@ -685,12 +739,12 @@ def project_rows():
     return '\n'.join(rows)
 
 
-FEATURED = ('susans-baking', 'cfo-office', 'hattan-villa', 'dubai-hills')
+FEATURED = ('susans-baking', 'cfo-office', 'villa-arabian-ranches', 'dubai-hills')
 
 FEATURED_BLURBS = {
     'susans-baking': 'Counters and display units for Dubai’s artisan bakery.',
     'cfo-office': 'Executive office for DP World, built entirely in-house.',
-    'hattan-villa': 'Full villa renovation in Arabian Ranches, approvals included.',
+    'villa-arabian-ranches': 'A private villa interior in Arabian Ranches, built in-house.',
     'dubai-hills': 'A family villa in Dubai Hills, documented to delivery.',
     'villa-798-mbr-city-district-one': 'A complete interior transformation in District One.',
     'maeen-villa-165-the-lakes': 'A full villa renovation at The Lakes community.',
@@ -797,16 +851,6 @@ def featured_cards():
     return '\n'.join(cards)
 
 
-# extra projects + gallery sections imported from the Desktop archive
-try:
-    from projects_new import SECTIONS, EXTRA_PROJECTS
-except ImportError:
-    SECTIONS, EXTRA_PROJECTS = {}, []
-for _p in PROJECTS:
-    _extra = SECTIONS.get(_p['slug'])
-    if _extra:
-        _p.setdefault('sections', []).extend(_extra)
-PROJECTS.extend(EXTRA_PROJECTS)
 
 
 def build():

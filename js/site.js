@@ -465,10 +465,10 @@
     const contentEl = qs(".hero-content", hero);
 
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    let idx = 1;
+    let idx = 0;
     let contentIdx = 1;
     let timer = null;
-    const slideDurations = [10000, 10000];
+    const slideDurations = [5000, 5000];
     const contentDuration = 5000;
     const getSlideDuration = (i) => slideDurations[i % slideDurations.length] || 5000;
 
