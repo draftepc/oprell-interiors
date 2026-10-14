@@ -10,3 +10,7 @@ image_manifest.json
 
 _*
 _shots/
+
+assets/proj/**/*.jpg
+assets/proj/**/*.jpeg
+assets/proj/**/*.png

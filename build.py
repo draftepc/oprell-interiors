@@ -42,8 +42,9 @@ def gen_webp():
     except ImportError:
         print('PIL not installed - skipping webp generation')
         return
-    for path in sorted(glob.glob('assets/proj/**/*.jp*g', recursive=True)):
-        stem = path[:-4]
+    for path in sorted(glob.glob('assets/proj/**/*.jp*g', recursive=True)
+                       + glob.glob('assets/proj/**/*.png', recursive=True)):
+        stem = os.path.splitext(path)[0]
         im = ImageOps.exif_transpose(Image.open(path))
         w, h = im.size
         mw = min(w, 1600)
@@ -250,7 +251,7 @@ def chrome_top(root, home, inner):
 def chrome_bottom(root, home, cta=True):
     band = f"""
 <section class="iconic-banner" aria-label="Start a project">
-  <div class="iconic-banner-bg" style="background-image:url('{root}assets/proj/hr-office/62759850.png')"></div>
+  <div class="iconic-banner-bg" style="background-image:url('{root}assets/proj/hr-office/62759850.webp')"></div>
   <div class="iconic-banner-inner">
     <div class="iconic-banner-kicker">Start a project</div>
     <h2 class="iconic-banner-title">HAVE A SPACE IN MIND? <span class="accent">LET'S BUILD IT.</span></h2>
@@ -333,7 +334,7 @@ JSONLD = """<script type="application/ld+json">
  "name":"OPRELL Interiors & Fit-Out",
  "description":"Dubai design and build practice — interior design, fit-out, joinery and landscape works across the UAE.",
  "url":"https://oprell.ae/","email":"contact@oprell.ae","telephone":"+971525201792",
- "image":"https://oprell.ae/assets/proj/villa-01.jpg",
+ "image":"https://oprell.ae/assets/proj/villa-01.webp",
  "address":{"@type":"PostalAddress","streetAddress":"Grosvenor Business Tower, Barsha Heights","addressLocality":"Dubai","addressCountry":"AE"},
  "sameAs":["https://www.instagram.com/oprell_interiors"]}
 </script>
@@ -342,44 +343,60 @@ JSONLD = """<script type="application/ld+json">
 # ------------------------------------------------------------- pages --------
 PAGES = [
     dict(file='index.html', frag='index', js=None, inner=False, path='',
-         og='assets/proj/villa-01.jpg', extra=JSONLD,
+         og='assets/proj/villa-01.webp', extra=JSONLD,
          title='OPRELL Interiors &amp; Fit-Out — Dubai',
          desc='OPRELL Interiors & Fit-Out — Dubai design and build practice. Interior design, fit-out, villa renovation and landscape works across the UAE.'),
     dict(file='services/index.html', frag='services', js=None, inner=True, path='services/',
-         og='assets/proj/villa-11.jpg',
+         og='assets/proj/villa-11.webp',
          title='Services — OPRELL Interiors &amp; Fit-Out, Dubai',
          desc='Interior design, fit-out, design + build, villa renovation, landscape and project management — delivered entirely in-house across the UAE.'),
     dict(file='projects/index.html', frag='projects', js=None, inner=True, path='projects/',
-         og='assets/proj/villa-03.jpg',
+         og='assets/proj/villa-03.webp',
          title='Projects — OPRELL Interiors &amp; Fit-Out, Dubai',
          desc='Selected OPRELL projects — residential villas, commercial offices and F&B fit-outs delivered across the UAE, 2022–2024.'),
     dict(file='about/index.html', frag='about', js=None, inner=True, path='about/',
-         og='assets/proj/office-08.jpg',
+         og='assets/proj/office-08.webp',
          title='About — OPRELL Interiors &amp; Fit-Out, Dubai',
          desc='OPRELL Interiors & Fit-Out — a Dubai design and build practice established 2020. 165+ in-house workforce, ISO 9001 · 14001 · 45001 certified.'),
     dict(file='contact/index.html', frag='contact', js=None, inner=True, path='contact/',
-         og='assets/proj/landscape-09.jpg',
+         og='assets/proj/landscape-09.webp',
          title='Contact — OPRELL Interiors &amp; Fit-Out, Dubai',
          desc='Start a project with OPRELL — interior design and fit-out across the UAE. contact@oprell.ae · +971 52 520 1792 · Barsha Heights, Dubai.'),
 ]
 
 
 # ------------------------------------------------------------- projects -----
-def imgs(slug, first=None):
-    """All source images inside assets/proj/<slug>/ as 'slug/name.jpg' paths.
+def webp_of(src):
+    """'slug/name.webp' if the variant exists for a 'slug/name.jpg|png' path."""
+    stem = os.path.splitext(src)[0]
+    return f'{stem}.webp' if os.path.exists(f'assets/proj/{stem}.webp') else src
 
-    first: optional filename to pin as the lead/cover image.
+
+def imgs(slug, first=None):
+    """All images inside assets/proj/<slug>/ as 'slug/name.ext' paths.
+
+    Prefers .webp when both a source master and its webp exist.
+    first: optional filename (or stem) to pin as the lead/cover image.
     """
-    exts = {'.jpg', '.jpeg', '.png'}
-    files = sorted(
-        f'{slug}/{os.path.basename(p)}'
-        for p in glob.glob(f'assets/proj/{slug}/*')
-        if os.path.isfile(p)
-        and os.path.splitext(p)[1].lower() in exts
-        and not p.lower().endswith('-800.webp'))
-    if first and f'{slug}/{first}' in files:
-        files.remove(f'{slug}/{first}')
-        files.insert(0, f'{slug}/{first}')
+    exts = {'.jpg', '.jpeg', '.png', '.webp'}
+    files = {}
+    for p in sorted(glob.glob(f'assets/proj/{slug}/*')):
+        if not os.path.isfile(p):
+            continue
+        stem, ext = os.path.splitext(p)
+        if ext.lower() not in exts or stem.lower().endswith('-800'):
+            continue
+        key = os.path.basename(stem)
+        if key not in files or ext.lower() == '.webp':
+            files[key] = f'{slug}/{key}{ext.lower()}'
+    files = list(files.values())
+    if first:
+        fstem = os.path.splitext(first)[0]
+        for f in list(files):
+            if os.path.splitext(os.path.basename(f))[0] == fstem:
+                files.remove(f)
+                files.insert(0, f)
+                break
     return files
 
 
@@ -545,14 +562,14 @@ def project_main(p, nxt):
     n = len(p['images'])
     n_sec = sum(len(s['images']) for s in sections)
     if p['images']:
-        hero_img = f"../assets/proj/{p['images'][0]}"
+        hero_img = f"../assets/proj/{webp_of(p['images'][0])}"
     elif p.get('cover'):
         hero_img = f"../assets/proj/{p['cover']}.webp"
     else:
         hero_img = '../assets/proj/villa-03.jpg'
 
     if nxt['images']:
-        nxt_img = nxt['images'][0]
+        nxt_img = webp_of(nxt['images'][0])
     elif nxt.get('cover'):
         nxt_img = f"{nxt['cover']}.webp"
     elif nxt.get('sections') and nxt['sections'][0]['images']:
@@ -564,7 +581,7 @@ def project_main(p, nxt):
         nxt_img = th
 
     # one unified deck: main highlights first, then every source section
-    slides = [(src, src, '') for src in p['images']]
+    slides = [(webp_of(src), webp_of(src), '') for src in p['images']]
     for s in sections:
         slides += [(f'{stem}-800.webp', f'{stem}.webp', s['name'])
                    for stem in s['images']]
@@ -669,10 +686,8 @@ def cover_src(p):
     Prefers .webp so the file isn't re-wrapped in a <picture> by enhance_imgs."""
     if p['images']:
         stem = p['images'][0]
-        for cand in (f'assets/proj/{stem[:-4]}.webp', f'assets/proj/{stem}'):
-            if stem.lower().endswith('.jpg') and os.path.exists(cand):
-                return cand
-        return f'assets/proj/{stem}'
+        w = webp_of(stem)
+        return f'assets/proj/{w}'
     c = p.get('cover')
     if c:
         for cand in (f'assets/proj/{c}-800.webp', f'assets/proj/{c}.webp'):
@@ -694,10 +709,7 @@ def project_photos(p):
     """Full-size gallery image URLs for a project (webp where available)."""
     out = []
     for src in p['images']:
-        st = src[:-4] if src.lower().endswith('.jpg') else src
-        out.append(f'assets/proj/{st}.webp'
-                   if os.path.exists(f'assets/proj/{st}.webp')
-                   else f'assets/proj/{src}')
+        out.append(f'assets/proj/{webp_of(src)}')
     for s in p.get('sections', []):
         out += [f'assets/proj/{stem}.webp' for stem in s['images']]
     return out
